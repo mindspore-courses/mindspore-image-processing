@@ -112,9 +112,7 @@ def main(args):
     mindspore.save_checkpoint(model, "quant_model_calibrated.ckpt")
 
     if args.qat:
-        # ########################### #
         # Quantization Aware Training #
-        # ########################### #
         pg = [p for p in model.trainable_params() if p.requires_grad]
 
         def dynamic_lr(lr, total_step, step_per_epoch):
