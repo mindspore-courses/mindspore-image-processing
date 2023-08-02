@@ -1,3 +1,4 @@
+'''模型训练'''
 import os
 import json
 import mindspore
@@ -36,7 +37,7 @@ flower_list = {'daisy': 0, 'dandelion': 1,
 cla_dict = dict((val, key) for key, val in flower_list.items())
 # write dict into json file
 json_str = json.dumps(cla_dict, indent=4)
-with open('class_indices.json', 'w') as json_file:
+with open('class_indices.json', 'w', encoding='utf-8') as json_file:
     json_file.write(json_str)
 
 batch_size = 16
@@ -109,7 +110,7 @@ for epoch in range(3):
         a = "*" * int(rate * 50)
         b = "." * int((1 - rate) * 50)
         print(
-            "\rtrain loss: {:^3.0f}%[{}->{}]{:.4f}" % (int(rate*100), a, b, loss))
+            f"train loss: {int(rate*100):^3.0f}%[{a}->{b}]{loss:.4f}")
     print()
 
     # validate
@@ -126,7 +127,6 @@ for epoch in range(3):
     if val_accurate > best_acc:
         best_acc = val_accurate
         mindspore.save_checkpoint(net, save_path)
-    print('[epoch %d] train_loss: %.3f  test_accuracy: %.3f' %
-          (epoch + 1, running_loss / step, val_accurate))
+    print(f'{epoch + 1} train_loss: {(running_loss / step):.3f}  test_accuracy: {(val_accurate):.3f}')
 
 print('Finished Training')
