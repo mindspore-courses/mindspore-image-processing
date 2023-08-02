@@ -1,4 +1,13 @@
 mindcv==0.2.2
-mindinsight==2.0.0
+onnx==1.14.0
+onnxruntime-gpu==1.15.1
+opencv-python==4.8.0.74
 mindspore==2.0.0
 pylint==2.7.4
+Flask==2.0.2
+Flask_Cors==3.0.9
+Pillow
+absl-py
+nvidia-tensorrt==8.2.5.1
+nvidia-pyindex==1.0.9
+https://ms-release.obs.cn-north-4.myhuaweicloud.com/2.0.0a0/GoldenStick/any/mindspore_gs-0.3.0-py3-none-any.whl --trusted-host ms-release.obs.cn-north-4.myhuaweicloud.com -i https://pypi.tuna.tsinghua.edu.cn/simple
