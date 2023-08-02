@@ -77,6 +77,7 @@ save_path = './resNet34.ckpt'
 
 
 def forward_fn(data, label):
+    '''前向传播'''
     # Define forward function
     logits = net(data)
     loss = loss_function(logits, label)
@@ -89,6 +90,7 @@ grad_fn = mindspore.value_and_grad(
 
 
 def train_step(data, label):
+    '''训练一次'''
     # Define function of one-step training
     (loss, logits), grads = grad_fn(data, label)
     optimizer(grads)

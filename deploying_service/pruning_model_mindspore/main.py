@@ -1,3 +1,4 @@
+'''主程序'''
 import os
 import time
 import mindspore
@@ -42,13 +43,13 @@ def validate_model(model: nn.Cell):
         predict_y = ops.softmax(outputs, axis=0)[1]
         acc += ops.sum(ops.equal(predict_y, val_labels)).item()
     val_accurate = acc / val_num
-    print('test_accuracy: {:3f}, time:{:3f}' %
-          (val_accurate, time.time() - t1))
+    print(f'test_accuracy: {val_accurate:.3f}, time:{(time.time() - t1):.3f}')
 
     return val_accurate
 
 
 def count_sparsity(model: nn.Cell, p=True):
+    '''计算稀疏度'''
     sum_zeros_num = 0
     sum_weights_num = 0
     for name, module in model.cells_and_names():
@@ -65,6 +66,7 @@ def count_sparsity(model: nn.Cell, p=True):
 
 
 def main():
+    '''主函数'''
     weights_path = "./resNet34.ckpt"
     model = resnet34(num_classes=5)
     param_not_load, _ = mindspore.load_param_into_net(
