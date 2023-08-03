@@ -1,4 +1,5 @@
 '''模型推理'''
+# pylint: disable = E0401
 import numpy as np
 import tensorrt as trt
 import onnxruntime
