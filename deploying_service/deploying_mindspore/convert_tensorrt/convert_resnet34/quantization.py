@@ -84,11 +84,15 @@ def main(args):
                                        shuffle=True,
                                        num_parallel_workers=nw)
     train_loader = train_loader.apply(train_dataset.collate_fn)
+    train_loader = train_loader.map(
+        operations=data_transform["train"], input_columns=["image"])
     train_loader = train_loader.batch(batch_size=batch_size)
 
     val_loader = ds.GeneratorDataset(val_dataset,
                                      shuffle=False,
                                      num_parallel_workers=nw)
+    val_loader = val_loader.map(
+        operations=data_transform["val"], input_columns=["image"])
     val_loader = val_loader.apply(val_dataset.collate_fn)
     val_loader = val_loader.batch(batch_size=batch_size)
 

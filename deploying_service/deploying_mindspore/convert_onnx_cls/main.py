@@ -1,4 +1,5 @@
 '''主程序'''
+# pylint: disable = E0401
 from PIL import Image
 import mindspore
 import mindspore.context as context

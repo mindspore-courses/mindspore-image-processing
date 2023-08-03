@@ -64,11 +64,7 @@ model_weight_path = "./resnet34-pre.ckpt"
 param_not_load, _ = mindspore.load_param_into_net(
     net, mindspore.load_checkpoint(model_weight_path))
 print(param_not_load)
-# missing_keys, unexpected_keys = net.load_state_dict(
-# torch.load(model_weight_path), strict=False)
-# for param in net.parameters():
-#     param.requires_grad = False
-# change fc layer structure
+
 inchannel = net.fc.in_channels
 net.fc = nn.Dense(inchannel, 5)
 
