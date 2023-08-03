@@ -1,4 +1,5 @@
 '''主函数'''
+# pylint: disable = E0401
 import os
 import io
 import json

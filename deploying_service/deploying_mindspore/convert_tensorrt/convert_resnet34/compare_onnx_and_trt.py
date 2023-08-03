@@ -1,3 +1,4 @@
+'''模型推理'''
 import numpy as np
 import tensorrt as trt
 import onnxruntime
@@ -18,6 +19,7 @@ def normalize(image: np.ndarray) -> np.ndarray:
 
 
 def onnx_inference(onnx_path: str, image: np.ndarray):
+    '''使用oonx模型'''
     # load onnx model
     ort_session = onnxruntime.InferenceSession(onnx_path)
 
@@ -28,6 +30,7 @@ def onnx_inference(onnx_path: str, image: np.ndarray):
 
 
 def trt_inference(trt_path: str, image: np.ndarray):
+    '''推理接口'''
     # Load the network in Inference Engine
     trt_logger = trt.Logger(trt.Logger.WARNING)
     with open(trt_path, "rb") as f, trt.Runtime(trt_logger) as runtime:
@@ -69,6 +72,7 @@ def trt_inference(trt_path: str, image: np.ndarray):
 
 
 def main():
+    '''主程序'''
     image_h = 224
     image_w = 224
     onnx_path = "resnet34.onnx"

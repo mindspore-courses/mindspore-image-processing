@@ -2,8 +2,8 @@
 refer to:
 https://docs.nvidia.com/deeplearning/tensorrt/pytorch-quantization-toolkit/docs/userguide.html
 """
+# pylint: disable = E0401
 import os
-import math
 import argparse
 
 from absl import logging
@@ -12,14 +12,7 @@ import mindspore
 import mindspore.nn as nn
 import mindspore.dataset as ds
 from mindspore_gs import SimulatedQuantizationAwareTraining as SimQAT
-# import torch
-# import torch.optim as optim
-# import torch.optim.lr_scheduler as lr_scheduler
-# from torchvision import transforms
 from mindcv.models.regnet import resnet34 as create_model
-# from pytorch_quantization import nn as quant_nn
-# from pytorch_quantization import quant_modules, calib
-# from pytorch_quantization.tensor_quant import QuantDescriptor
 
 from my_dataset import MyDataSet
 from utils import read_split_data, train_one_epoch, evaluate
@@ -58,7 +51,7 @@ def collect_stats(model, data_loader, num_batches):
 
 
 def main(args):
-
+    '''量化训练主函数'''
     train_images_path, train_images_label, val_images_path, val_images_label = read_split_data(
         args.data_path)
 
@@ -85,16 +78,18 @@ def main(args):
     batch_size = args.batch_size
     # number of workers
     nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
-    print('Using {} dataloader workers every process'.format(nw))
+    print(f'Using {nw} dataloader workers every process')
 
     train_loader = ds.GeneratorDataset(train_dataset,
                                        shuffle=True,
                                        num_parallel_workers=nw)
+    train_loader = train_loader.apply(train_dataset.collate_fn)
     train_loader = train_loader.batch(batch_size=batch_size)
 
     val_loader = ds.GeneratorDataset(val_dataset,
                                      shuffle=False,
                                      num_parallel_workers=nw)
+    val_loader = val_loader.apply(val_dataset.collate_fn)
     val_loader = val_loader.batch(batch_size=batch_size)
 
     model = create_model(num_classes=args.num_classes)
@@ -126,7 +121,8 @@ def main(args):
 
         decay_lr = dynamic_lr(lr=args.lr, total_step=200, step_per_epoch=10)
 
-        optimizer = nn.SGD(pg, lr=decay_lr, momentum=0.9, weight_decay=5E-5)
+        optimizer = nn.SGD(pg, learning_rate=decay_lr,
+                           momentum=0.9, weight_decay=5E-5)
 
         for epoch in range(args.epochs):
             # train

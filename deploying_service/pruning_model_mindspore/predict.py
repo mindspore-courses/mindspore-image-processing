@@ -1,4 +1,6 @@
 '''模型预测'''
+# pylint: disable = E0401
+import sys
 import json
 from model import resnet34
 from PIL import Image
@@ -32,7 +34,7 @@ try:
     class_indict = json.load(json_file)
 except Exception as e:
     print(e)
-    exit(-1)
+    sys.exit(-1)
 
 # create model
 model = resnet34(num_classes=5)

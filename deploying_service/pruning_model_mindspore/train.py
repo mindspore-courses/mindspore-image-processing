@@ -1,4 +1,5 @@
 '''模型训练'''
+# pylint: disable = E0401
 import os
 import json
 import mindspore
@@ -27,8 +28,9 @@ data_root = os.path.abspath(os.path.join(
 image_path = data_root + "/data_set/flower_data/"  # flower data set path
 
 train_dataset = ds.ImageFolderDataset(dataset_dir=image_path+"train",
-                                      transform=data_transform,
                                       class_indexing={'daisy': 0, 'dandelion': 1, 'roses': 2, 'sunflower': 3, 'tulips': 4})
+train_dataset = train_dataset.map(
+    operations=data_transform["train"], input_columns=["image"])
 train_num = len(train_dataset)
 
 # {'daisy':0, 'dandelion':1, 'roses':2, 'sunflower':3, 'tulips':4}
@@ -46,8 +48,9 @@ train_loader = ds.GeneratorDataset(train_dataset,
                                    num_parallel_workers=0)
 train_loader = train_loader.batch(batch_size=batch_size)
 
-validate_dataset = ds.ImageFolderDataset(dataset_dir=image_path + "val",
-                                         transform=data_transform["val"])
+validate_dataset = ds.ImageFolderDataset(dataset_dir=image_path + "val")
+validate_dataset = validate_dataset.map(
+    operations=data_transform["val"], input_columns=["image"])
 val_num = len(validate_dataset)
 validate_loader = ds.GeneratorDataset(validate_dataset,
                                       shuffle=False,
@@ -101,18 +104,19 @@ for epoch in range(3):
     # train
     net.set_train(True)
     running_loss = 0.0
-    for step, data in enumerate(train_loader, start=0):
-        images, labels = data
-        loss, logits = train_step(images, labels)
+    step = 0
+    for step, e_data in enumerate(train_loader, start=0):
+        images, labels = e_data
+        e_loss, e_logits = train_step(images, labels)
 
         # print statistics
-        running_loss += loss.item()
+        running_loss += e_loss.item()
         # print train process
         rate = (step+1)/len(train_loader)
         a = "*" * int(rate * 50)
         b = "." * int((1 - rate) * 50)
         print(
-            f"train loss: {int(rate*100):^3.0f}%[{a}->{b}]{loss:.4f}")
+            f"train loss: {int(rate*100):^3.0f}%[{a}->{b}]{e_loss:.4f}")
     print()
 
     # validate

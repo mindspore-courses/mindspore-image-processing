@@ -1,4 +1,5 @@
 '''主程序'''
+# pylint: disable = E0401
 import os
 import time
 import mindspore
@@ -27,6 +28,8 @@ def validate_model(model: nn.Cell):
     '''验证模型'''
     validate_dataset = ds.ImageFolderDataset(dataset_dir=image_path + "val",
                                              transform=data_transform)
+    validate_dataset = validate_dataset.map(
+        operations=data_transform, input_columns=["image"])
     val_num = len(validate_dataset)
     validate_loader = ds.GeneratorDataset(validate_dataset,
                                           shuffle=False,

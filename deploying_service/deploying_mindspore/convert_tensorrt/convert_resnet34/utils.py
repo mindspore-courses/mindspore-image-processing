@@ -1,3 +1,4 @@
+'''工具类'''
 import os
 import sys
 import json
@@ -8,6 +9,7 @@ from tqdm import tqdm
 
 
 def read_split_data(root: str, val_rate: float = 0.2):
+    '''数据分割'''
     random.seed(0)  # 保证随机结果可复现
     assert os.path.exists(
         root), "dataset root: {} does not exist.".format(root)
@@ -59,12 +61,14 @@ def read_split_data(root: str, val_rate: float = 0.2):
 
 
 def write_pickle(list_info: list, file_name: str):
-    with open(file_name, 'wb') as f:
+    '''写入'''
+    with open(file_name, 'wb', encoding='utf-8') as f:
         pickle.dump(list_info, f)
 
 
 def read_pickle(file_name: str) -> list:
-    with open(file_name, 'rb') as f:
+    '''读取'''
+    with open(file_name, 'rb', encoding='utf-8') as f:
         info_list = pickle.load(f)
         return info_list
 
@@ -94,6 +98,7 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
 
     sample_num = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
+    step = 0
     for step, data in enumerate(data_loader):
         images, labels = data
         sample_num += images.shape[0]
@@ -110,13 +115,11 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
             print('WARNING: non-finite loss, ending training ', loss)
             sys.exit(1)
 
-        optimizer.step()
-        optimizer.zero_grad()
-
     return accu_loss.item() / (step + 1), accu_num.item() / sample_num
 
 
 def evaluate(model, data_loader, epoch):
+    '''验证'''
     loss_function = mindspore.nn.CrossEntropyLoss()
 
     model.set_train(False)
@@ -126,6 +129,7 @@ def evaluate(model, data_loader, epoch):
 
     sample_num = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
+    step = 0
     for step, data in enumerate(data_loader):
         images, labels = data
         sample_num += images.shape[0]
