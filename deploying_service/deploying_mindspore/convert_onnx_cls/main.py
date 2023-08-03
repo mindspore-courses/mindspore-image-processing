@@ -33,10 +33,12 @@ def main(save_path=None):
     torch_out = model(x)
 
     # export the model
-    mindspore.export(net = model,                       # model being run
-                      inputs = x,                           # model input (or a tuple for multiple inputs)
-                      file_name = save_path,                   # where to save the model (can be a file or file-like object)
-                      file_format = 'ONNX')
+    mindspore.export(net=model,                       # model being run
+                     # model input (or a tuple for multiple inputs)
+                     inputs=x,
+                     # where to save the model (can be a file or file-like object)
+                     file_name=save_path,
+                     file_format='ONNX')
 
     # check onnx model
     onnx_model = onnx.load(save_path)
@@ -50,19 +52,20 @@ def main(save_path=None):
 
     # compare ONNX Runtime and Pytorch results
     # assert_allclose: Raises an AssertionError if two objects are not equal up to desired tolerance.
-    np.testing.assert_allclose(to_numpy(torch_out), ort_outs[0], rtol=1e-03, atol=1e-05)
+    np.testing.assert_allclose(
+        to_numpy(torch_out), ort_outs[0], rtol=1e-03, atol=1e-05)
     print("Exported model has been tested with ONNXRuntime, and the result looks good!")
 
     # load test image
     img = Image.open("../tulip.jpg")
-    img = cv2.cvtColor(np.asarray(img),cv2.COLOR_RGB2BGR)
+    img = cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
 
     # pre-process
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     img = cv2.resize(img, [224, 224])
     img = (img[:, :] - mean) / std
-    img = Image.fromarray(cv2.cvtColor(img,cv2.COLOR_BGR2RGB))
+    img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     img = mindspore.Tensor(img)
 
     img = img.unsqueeze(0)
@@ -73,7 +76,8 @@ def main(save_path=None):
     prediction = ort_outs[0]
 
     # np softmax process
-    prediction -= np.max(prediction, keepdims=True)  # 为了稳定地计算softmax概率， 一般会减掉最大元素
+    # 为了稳定地计算softmax概率， 一般会减掉最大元素
+    prediction -= np.max(prediction, keepdims=True)
     prediction = np.exp(prediction) / np.sum(np.exp(prediction), keepdims=True)
     print(prediction)
 

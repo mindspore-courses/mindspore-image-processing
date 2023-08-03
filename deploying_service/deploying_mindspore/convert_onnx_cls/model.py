@@ -2,6 +2,7 @@
 import mindspore.nn as nn
 import mindspore as ms
 
+
 class BasicBlock(nn.Cell):
     '''构造resnet中重复的块'''
     expansion = 1
@@ -81,6 +82,7 @@ class Bottleneck(nn.Cell):
 
 class ResNet(nn.Cell):
     '''构造resnet'''
+
     def __init__(self, block, blocks_num, num_classes=1000, include_top=True):
         super().__init__()
         self.include_top = include_top
@@ -102,18 +104,21 @@ class ResNet(nn.Cell):
         for cell in self.modules():
             if isinstance(cell, nn.Conv2d):
                 cell.weight.set_data(ms.common.initializer.initializer(
-                                    ms.common.initializer.HeNormal(negative_slope=0, mode='fan_out', nonlinearity='relu'),
-                                    cell.weight.shape, cell.weight.dtype))
+                    ms.common.initializer.HeNormal(
+                        negative_slope=0, mode='fan_out', nonlinearity='relu'),
+                    cell.weight.shape, cell.weight.dtype))
 
     def _make_layer(self, block, channel, block_num, stride=1):
         downsample = None
         if stride != 1 or self.in_channel != channel * block.expansion:
             downsample = nn.SequentialCell(
-                nn.Conv2d(self.in_channel, channel * block.expansion, kernel_size=1, stride=stride, has_bias=False),
+                nn.Conv2d(self.in_channel, channel * block.expansion,
+                          kernel_size=1, stride=stride, has_bias=False),
                 nn.BatchNorm2d(channel * block.expansion))
 
         layers = []
-        layers.append(block(self.in_channel, channel, downsample=downsample, stride=stride))
+        layers.append(block(self.in_channel, channel,
+                      downsample=downsample, stride=stride))
         self.in_channel = channel * block.expansion
 
         for _ in range(1, block_num):

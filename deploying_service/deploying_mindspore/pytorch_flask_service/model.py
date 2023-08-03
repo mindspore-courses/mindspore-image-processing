@@ -1,3 +1,4 @@
+'''模型文件'''
 import numpy as np
 import mindspore.nn as nn
 from mindspore.ops import operations as P
@@ -32,7 +33,8 @@ class ConvBNReLU(nn.Cell):
         in_channels = in_planes
         out_channels = out_planes
         if groups == 1:
-            conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, pad_mode='pad', padding=padding)
+            conv = nn.Conv2d(in_channels, out_channels, kernel_size,
+                             stride, pad_mode='pad', padding=padding)
         else:
             out_channels = in_planes
             conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, pad_mode='pad',
@@ -48,20 +50,25 @@ class ConvBNReLU(nn.Cell):
 
 
 class InvertedResidual(nn.Cell):
+    '''子模块'''
+
     def __init__(self, in_channel, out_channel, stride, expand_ratio):
-        super(InvertedResidual, self).__init__()
+        super().__init__()
         hidden_channel = in_channel * expand_ratio
         self.use_shortcut = stride == 1 and in_channel == out_channel
 
         layers = []
         if expand_ratio != 1:
             # 1x1 pointwise conv
-            layers.append(ConvBNReLU(in_channel, hidden_channel, kernel_size=1))
+            layers.append(ConvBNReLU(
+                in_channel, hidden_channel, kernel_size=1))
         layers.extend([
             # 3x3 depthwise conv
-            ConvBNReLU(hidden_channel, hidden_channel, stride=stride, groups=hidden_channel),
+            ConvBNReLU(hidden_channel, hidden_channel,
+                       stride=stride, groups=hidden_channel),
             # 1x1 pointwise conv(linear)
-            nn.Conv2d(hidden_channel, out_channel, kernel_size=1, has_bias=False),
+            nn.Conv2d(hidden_channel, out_channel,
+                      kernel_size=1, has_bias=False),
             nn.BatchNorm2d(out_channel),
         ])
 
@@ -79,8 +86,10 @@ class InvertedResidual(nn.Cell):
 
 
 class MobileNetV2(nn.Cell):
+    '''MobileNetV2'''
+
     def __init__(self, num_classes=1000, alpha=1.0, round_nearest=8):
-        super(MobileNetV2, self).__init__()
+        super().__init__()
         block = InvertedResidual
         input_channel = _make_divisible(32 * alpha, round_nearest)
         last_channel = _make_divisible(1280 * alpha, round_nearest)
@@ -104,7 +113,8 @@ class MobileNetV2(nn.Cell):
             output_channel = _make_divisible(c * alpha, round_nearest)
             for i in range(n):
                 stride = s if i == 0 else 1
-                features.append(block(input_channel, output_channel, stride, expand_ratio=t))
+                features.append(
+                    block(input_channel, output_channel, stride, expand_ratio=t))
                 input_channel = output_channel
         # building last several layers
         features.append(ConvBNReLU(input_channel, last_channel, 1))
@@ -147,6 +157,7 @@ class MobileNetV2(nn.Cell):
                         Tensor(np.zeros(m.bias.data.shape, dtype="float32")))
 
     def construct(self, x):
+        '''MobileNetV2 construct. '''
         x = self.features(x)
         x = self.avgpool(x)
         x = nn.Flatten(x, 1)

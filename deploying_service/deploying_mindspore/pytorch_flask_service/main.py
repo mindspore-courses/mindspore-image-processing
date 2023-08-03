@@ -1,3 +1,4 @@
+'''主函数'''
 import os
 import io
 import json
@@ -35,7 +36,7 @@ class_indict = json.load(json_file)
 
 
 def transform_image(image_bytes):
-
+    '''图像变换'''
     image = Image.open(io.BytesIO(image_bytes))
     if image.mode != "RGB":
         raise ValueError("input file does not RGB image...")
@@ -51,6 +52,7 @@ def transform_image(image_bytes):
 
 
 def get_prediction(image_bytes):
+    '''返回结果'''
     try:
         tensor = transform_image(image_bytes=image_bytes)
         outputs = mindspore.ops.softmax(
@@ -70,6 +72,7 @@ def get_prediction(image_bytes):
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    '''预测'''
     image = request.files["file"]
     img_bytes = image.read()
     info = get_prediction(image_bytes=img_bytes)
@@ -78,6 +81,7 @@ def predict():
 
 @app.route("/", methods=["GET", "POST"])
 def root():
+    '''页面'''
     return render_template("up.html")
 
 
