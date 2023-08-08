@@ -1,5 +1,5 @@
 mindcv==0.2.2
-onnx==1.14.0
+onnx
 onnxruntime-gpu==1.15.1
 opencv-python==4.8.0.74
 mindspore==2.0.0
