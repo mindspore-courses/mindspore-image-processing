@@ -265,7 +265,7 @@ class MAPMetric(Metric):
         """
         Resets metric
         """
-        self.metric.clean()
+        self.metric.clear()
 
     def get_attributes(self):
         """
