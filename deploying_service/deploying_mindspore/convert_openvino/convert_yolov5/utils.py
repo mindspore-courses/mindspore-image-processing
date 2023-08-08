@@ -209,7 +209,7 @@ class MAPMetric(Metric):
         Returns average metric value for all model outputs.
         Possible format: {metric_name: metric_value}
         """
-        return {self._name: self.metric.compute()[self._name].item()}
+        return {self._name: self.metric.eval()[self._name].item()}
 
     def update(self, output, target):
         """
@@ -265,7 +265,7 @@ class MAPMetric(Metric):
         """
         Resets metric
         """
-        self.metric.reset()
+        self.metric.clean()
 
     def get_attributes(self):
         """
@@ -593,4 +593,3 @@ class EvalCOCOMetric:
 
         coco_info = self.coco_evaluator.stats.tolist()  # numpy to list
         return coco_info
-
