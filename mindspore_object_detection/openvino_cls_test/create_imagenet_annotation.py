@@ -23,7 +23,7 @@ with open("my_labels.txt", "w", encoding='utf-8') as lw:
 print("create my_labels.txt successful...")
 
 # create annotation file
-with open("my_annotation.txt", "w") as aw:
+with open("my_annotation.txt", "w", encoding='utf-8') as aw:
     for img in img_list:
         img_classes = classes_dict[img.split("/")[-2]]
         txt = "{} {}".format(img, img_classes)
