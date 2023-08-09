@@ -8,11 +8,21 @@ on:
     branches: ["mian"]
     paths:
       - "deploying_service/**"
+      - "mindspore_object_detection/**"
+      - "mindspore_classification/**"
+      - "mindspore_keypoint/**"
+      - "mindspore_segmentation/**"
+      - "others_project/**"
       - ".github/workflows/**"
   push:
     branches: ["main"]
     paths:
       - "deploying_service/**"
+      - "mindspore_object_detection/**"
+      - "mindspore_classification/**"
+      - "mindspore_keypoint/**"
+      - "mindspore_segmentation/**"
+      - "others_project/**"
 
 permissions:
   contents: read
@@ -33,3 +43,18 @@ jobs:
       - name: Analysing the deploying_service code with pylint
         run: |
           pylint deploying_service --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_object_detection code with pylint
+        run: |
+          pylint mindspore_object_detection --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_classification code with pylint
+        run: |
+          pylint mindspore_classification --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_keypoint code with pylint
+        run: |
+          pylint mindspore_keypoint --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_segmentation code with pylint
+        run: |
+          pylint mindspore_segmentation --rcfile=.github/pylint.conf
+      - name: Analysing the others_project code with pylint
+        run: |
+          pylint others_project --rcfile=.github/pylint.conf
