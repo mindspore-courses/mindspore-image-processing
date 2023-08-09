@@ -4,12 +4,12 @@ onnx
 onnxruntime-gpu
 opencv-python
 mindspore==2.0.0
-pylint
+pylint==2.7.4
 Flask
 Flask_Cors
 Pillow
 absl-py
-nvidia-tensorrt
+nvidia-tensorrt==8.4.1.5
 protobuf
 openvino-dev
 https://ms-release.obs.cn-north-4.myhuaweicloud.com/2.0.0a0/GoldenStick/any/mindspore_gs-0.3.0-py3-none-any.whl --trusted-host ms-release.obs.cn-north-4.myhuaweicloud.com -i https://pypi.tuna.tsinghua.edu.cn/simple

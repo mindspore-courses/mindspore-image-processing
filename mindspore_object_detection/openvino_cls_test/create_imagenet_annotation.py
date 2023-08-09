@@ -27,7 +27,7 @@ print("create my_labels.txt successful...")
 with open("my_annotation.txt", "w", encoding='utf-8') as aw:
     for img in img_list:
         img_classes = classes_dict[img.split("/")[-2]]
-        txt = "{} {}".format(img, img_classes)
+        txt = F"{img} {img_classes}"
         if index != len(img_list):
             txt += "\n"
         aw.write(txt)
