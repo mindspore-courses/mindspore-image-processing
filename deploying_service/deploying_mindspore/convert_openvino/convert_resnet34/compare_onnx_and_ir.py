@@ -1,5 +1,5 @@
 '''不同框架模型比较'''
-# pylint: disable=E0401
+# pylint: disable=E0401, E0611
 import numpy as np
 import onnxruntime
 from openvino.runtime import Core
@@ -37,7 +37,7 @@ def ir_inference(ir_path: str, image: np.ndarray):
     compiled_model_ir = ie.compile_model(model=model_ir, device_name="CPU")
 
     # Get input and output layers
-    input_layer_ir = next(iter(compiled_model_ir.inputs))
+    _ = next(iter(compiled_model_ir.inputs))
     output_layer_ir = next(iter(compiled_model_ir.outputs))
 
     # Run inference on the input image

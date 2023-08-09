@@ -48,7 +48,7 @@ def draw_text(draw,
     except IOError:
         font = ImageFont.load_default()
 
-    left, top, right, bottom = box
+    left, top, _, bottom = box
     # If the total height of the display strings added to the top of the bounding
     # box exceeds the top of the image, stack the strings below the bounding box
     # instead of above.
@@ -65,7 +65,7 @@ def draw_text(draw,
         text_bottom = bottom + display_str_height
 
     for ds in display_str:
-        text_width, text_height = font.getsize(ds)
+        text_width, _ = font.getsize(ds)
         margin = np.ceil(0.05 * text_width)
         draw.rectangle([(left, text_top),
                         (left + text_width + 2 * margin, text_bottom)], fill=color)

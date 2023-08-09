@@ -1,4 +1,5 @@
 '''评价指标'''
+# pylint:disable=E0401, W0613
 import contextlib
 import io
 import mindspore
@@ -38,6 +39,8 @@ class MeanAveragePrecision(mindspore.train.Metric):
         self.groundtruth_labels = []
         self.groundtruth_crowds = []
         self.groundtruth_area = []
+
+        self.coco_eval = 0
 
     def clear(self):
         """初始化变量列表"""
@@ -141,7 +144,7 @@ class MeanAveragePrecision(mindspore.train.Metric):
     def _get_classes(self):
         """Return a list of unique classes found in ground truth and detection data."""
         if len(self.detection_labels) > 0 or len(self.groundtruth_labels) > 0:
-            return torch.cat(self.detection_labels + self.groundtruth_labels).unique().cpu().tolist()
+            return mindspore.ops.cat(self.detection_labels + self.groundtruth_labels).unique().cpu().asnumpy().tolist()
         return []
 
     def _get_coco_format(
@@ -180,7 +183,7 @@ class MeanAveragePrecision(mindspore.train.Metric):
                         f"Invalid input box of sample {image_id}, element {k} (expected 4 values, got {len(image_box)})"
                     )
 
-                if type(image_label) != int:
+                if isinstance(image_label, int):
                     raise ValueError(
                         f"Invalid input class of sample {image_id}, element {k}"
                         f" (expected value of type integer, got type {type(image_label)})"
@@ -207,7 +210,7 @@ class MeanAveragePrecision(mindspore.train.Metric):
 
                 if scores is not None:
                     score = scores[image_id][k].cpu().tolist()
-                    if type(score) != float:
+                    if isinstance(score, float):
                         raise ValueError(
                             f"Invalid input score of sample {image_id}, element {k}"
                             f" (expected value of type float, got type {type(score)})"
@@ -229,14 +232,14 @@ class MeanAveragePrecision(mindspore.train.Metric):
             boxes or masks depending on the iou_type
 
         """
+        masks = []
         if self.iou_type == "bbox":
-            boxes = _fix_empty_tensors(item["boxes"])
-            if boxes.numel() > 0:
-                boxes = box_convert(
-                    boxes, in_fmt=self.box_format, out_fmt="xywh")
-            return boxes
+            masks = _fix_empty_tensors(item["boxes"])
+            if masks.numel() > 0:
+                masks = box_convert(
+                    masks, in_fmt=self.box_format, out_fmt="xywh")
+            return masks
         if self.iou_type == "segm":
-            masks = []
             for i in item["masks"].cpu().numpy():
                 rle = mask_utils.encode(np.asfortranarray(i))
                 masks.append((tuple(rle["size"]), rle["counts"]))
@@ -254,11 +257,12 @@ def box_convert(boxes, in_fmt="xyxy", out_fmt="xywh"):
     Returns:
         boxes (Tensor[N, 4]): boxes in (x, y, w, h) format.
     """
-    x1, y1, x2, y2 = boxes.unbind(-1)
-    w = x2 - x1  # x2 - x1
-    h = y2 - y1  # y2 - y1
-    boxes = mindspore.ops.stack((x1, y1, w, h), axis=-1)
-    return boxes
+    if in_fmt == "xyxy" and out_fmt == "xywh":
+        x1, y1, x2, y2 = boxes.unbind(-1)
+        w = x2 - x1  # x2 - x1
+        h = y2 - y1  # y2 - y1
+        boxes = mindspore.ops.stack((x1, y1, w, h), axis=-1)
+        return boxes
 
 
 def _fix_empty_tensors(boxes):

@@ -45,7 +45,7 @@ def main():
                          boxes,
                          cls,
                          scores,
-                         category_index=dict([(str(i), v) for i, v in enumerate(coco80_names)]))
+                         category_index={[(str(i), v) for i, v in enumerate(coco80_names)]})
     plt.imshow(draw_img)
     plt.show()
     draw_img.save("predict.jpg")

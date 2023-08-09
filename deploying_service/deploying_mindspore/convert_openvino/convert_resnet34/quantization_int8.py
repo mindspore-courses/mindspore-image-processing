@@ -1,5 +1,5 @@
 '''量化'''
-# pylint: disable=E0401
+# pylint: disable=E0401, E0611
 from addict import Dict
 from compression.engines.ie_engine import IEEngine
 from compression.graph import load_model, save_model
@@ -69,9 +69,9 @@ def main():
     compress_model_weights(compressed_model)
 
     # Step 8: Save the compressed model to the desired path.
-    compressed_model_paths = save_model(model=compressed_model,
-                                        save_path=save_dir,
-                                        model_name=model_name)
+    _ = save_model(model=compressed_model,
+                   save_path=save_dir,
+                   model_name=model_name)
 
     # Step 9: Compare accuracy of the original and quantized models.
     metric_results = pipeline.evaluate(model)

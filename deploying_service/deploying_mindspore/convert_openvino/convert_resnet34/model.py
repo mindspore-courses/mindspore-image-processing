@@ -24,6 +24,8 @@ def _make_divisible(ch, divisor=8, min_ch=None):
 
 
 class ConvBNActivation(nn.SequentialCell):
+    '''子模块'''
+
     def __init__(self,
                  in_planes: int,
                  out_planes: int,
@@ -37,27 +39,28 @@ class ConvBNActivation(nn.SequentialCell):
             norm_layer = nn.BatchNorm2d
         if activation_layer is None:
             activation_layer = nn.ReLU6
-        super(ConvBNActivation, self).__init__(nn.Conv2d(in_channels=in_planes,
-                                                         out_channels=out_planes,
-                                                         kernel_size=kernel_size,
-                                                         stride=stride,
-                                                         padding=padding,
-                                                         group=groups,
-                                                         has_bias=False),
-                                               norm_layer(out_planes),
-                                               activation_layer(inplace=True))
+        super().__init__(nn.Conv2d(in_channels=in_planes,
+                                   out_channels=out_planes,
+                                   kernel_size=kernel_size,
+                                   stride=stride,
+                                   padding=padding,
+                                   group=groups,
+                                   has_bias=False),
+                         norm_layer(out_planes),
+                         activation_layer(inplace=True))
 
 
 class SqueezeExcitation(nn.Cell):
     '''子模块'''
 
     def __init__(self, input_c: int, squeeze_factor: int = 4):
-        super(SqueezeExcitation, self).__init__()
+        super().__init__()
         squeeze_c = _make_divisible(input_c // squeeze_factor, 8)
         self.fc1 = nn.Conv2d(input_c, squeeze_c, 1)
         self.fc2 = nn.Conv2d(squeeze_c, input_c, 1)
 
-    def forwconstructard(self, x: Tensor) -> Tensor:
+    def construct(self, x: Tensor) -> Tensor:
+        '''计算'''
         scale = ops.adaptive_avg_pool2d(x, output_size=(1, 1))
         scale = self.fc1(scale)
         scale = ops.relu(scale)
@@ -140,6 +143,7 @@ class InvertedResidual(nn.Cell):
         self.is_strided = cnf.stride > 1
 
     def construct(self, x: Tensor) -> Tensor:
+        '''计算'''
         result = self.block(x)
         if self.use_res_connect:
             result += x
@@ -156,13 +160,13 @@ class MobileNetV3(nn.Cell):
                  num_classes: int = 1000,
                  block: Optional[Callable[..., nn.Cell]] = None,
                  norm_layer: Optional[Callable[..., nn.Cell]] = None):
-        super(MobileNetV3, self).__init__()
+        super().__init__()
 
         if not inverted_residual_setting:
             raise ValueError(
                 "The inverted_residual_setting should not be empty.")
-        elif not (isinstance(inverted_residual_setting, List) and
-                  all([isinstance(s, InvertedResidualConfig) for s in inverted_residual_setting])):
+        if not (isinstance(inverted_residual_setting, List) and
+                  all(isinstance(s, InvertedResidualConfig) for s in inverted_residual_setting)):
             raise TypeError(
                 "The inverted_residual_setting should be List[InvertedResidualConfig]")
 
@@ -224,6 +228,7 @@ class MobileNetV3(nn.Cell):
                         Tensor(np.zeros(m.has_bias.data.shape, dtype="float32")))
 
     def _forward_impl(self, x: Tensor) -> Tensor:
+        '''计算'''
         x = self.features(x)
         x = self.avgpool(x)
         x = nn.Flatten(x, 1)
@@ -232,6 +237,7 @@ class MobileNetV3(nn.Cell):
         return x
 
     def construct(self, x: Tensor) -> Tensor:
+        '''计算'''
         return self._forward_impl(x)
 
 

@@ -1,5 +1,5 @@
 '''量化'''
-# pylint:disable-E0401
+# pylint:disable=E0401
 import time
 from addict import Dict
 from compression.engines.ie_engine import IEEngine

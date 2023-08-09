@@ -1,5 +1,5 @@
 '''工具类'''
-# pylint: disable=E0401
+# pylint: disable=E0401, E0611
 import os
 import json
 import random

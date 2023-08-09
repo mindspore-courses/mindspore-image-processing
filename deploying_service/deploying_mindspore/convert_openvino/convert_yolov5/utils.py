@@ -1,5 +1,5 @@
 '''工具类'''
-# pylint:disable=E0401
+# pylint:disable=E0401, E0611
 import os
 import time
 import json
@@ -137,7 +137,7 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
         n = x.shape[0]  # number of boxes
         if not n:  # no boxes
             continue
-        elif n > max_nms:  # excess boxes
+        if n > max_nms:  # excess boxes
             # sort by confidence
             x = x[x[:, 4].argsort(descending=True)[:max_nms]]
 
@@ -401,10 +401,10 @@ class MyDataLoader(DataLoader):
         self.size = size
         self.coco = COCO(self.anno_path)
 
-        self.coco91_id2classes = dict(
-            [(v["id"], v["name"]) for k, v in self.coco.cats.items()])
-        coco90_classes2id = dict([(v["name"], v["id"])
-                                 for k, v in self.coco.cats.items()])
+        self.coco91_id2classes = {[(v["id"], v["name"])
+                                   for k, v in self.coco.cats.items()]}
+        coco90_classes2id = {[(v["name"], v["id"])
+                              for k, v in self.coco.cats.items()]}
 
         self.coco80_classes = coco80_names
         self.coco_id80_to_id91 = dict(
@@ -422,6 +422,7 @@ class MyDataLoader(DataLoader):
                       h: int = None,
                       ratio: tuple = None,
                       pad: tuple = None):
+        '''处理标注列表'''
         assert w > 0
         assert h > 0
 
@@ -486,7 +487,7 @@ class MyDataLoader(DataLoader):
         image_path = coco.loadImgs(img_id)[0]['file_name']
         img = cv2.imread(os.path.join(self.img_root, image_path))
 
-        origin_h, origin_w, c = img.shape
+        origin_h, origin_w, _ = img.shape
         image, ratio, pad = letterbox(img, auto=False, new_shape=self.size)
         target_annotations = self.parse_targets(
             coco_target, origin_w, origin_h, ratio, pad)

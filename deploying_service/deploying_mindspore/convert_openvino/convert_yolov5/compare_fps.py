@@ -48,7 +48,7 @@ def ir_inference(ir_path: str, image: np.ndarray, num_images: int = 20):
 
     # Get input and output layers
     input_layer_ir = next(iter(compiled_model_ir.inputs))
-    output_layer_ir = next(iter(compiled_model_ir.outputs))
+    _ = next(iter(compiled_model_ir.outputs))
 
     start = time.perf_counter()
     request_ir = compiled_model_ir.create_infer_request()
@@ -86,10 +86,10 @@ def mindspore_inference(image: np.ndarray, num_images: int = 20):
     return num_images / time_torch
 
 
-def plot_fps(v: dict):
+def plot_fps(pv: dict):
     '''绘制帧率（FPS）比较图'''
-    x = list(v.keys())
-    y = list(v.values())
+    x = list(pv.keys())
+    y = list(pv.values())
 
     plt.bar(range(len(x)), y, align='center')
     plt.xticks(range(len(x)), x)
