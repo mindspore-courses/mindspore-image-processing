@@ -12,7 +12,7 @@ classes_info.sort()
 classes_dict = {}
 
 # create label file
-with open("my_labels.txt", "w") as lw:
+with open("my_labels.txt", "w", encoding='utf-8') as lw:
     # 注意，没有背景时，index要从0开始
     for index, c in enumerate(classes_info, start=0):
         txt = "{}:{}".format(index, c)
