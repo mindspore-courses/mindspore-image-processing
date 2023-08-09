@@ -401,14 +401,14 @@ class MyDataLoader(DataLoader):
         self.size = size
         self.coco = COCO(self.anno_path)
 
-        self.coco91_id2classes = {[(v["id"], v["name"])
+        self.coco91_id2classes = {[(v["id"] : v["name"])
                                    for k, v in self.coco.cats.items()]}
-        coco90_classes2id = {[(v["name"], v["id"])
+        coco90_classes2id = {[(v["name"] : v["id"])
                               for k, v in self.coco.cats.items()]}
 
         self.coco80_classes = coco80_names
-        self.coco_id80_to_id91 = dict(
-            [(i, coco90_classes2id[k]) for i, k in enumerate(coco80_names)])
+        self.coco_id80_to_id91 = {[(i : coco90_classes2id[k])
+                                   for i, k in enumerate(coco80_names)]}
 
         ids = list(sorted(self.coco.imgs.keys()))
 

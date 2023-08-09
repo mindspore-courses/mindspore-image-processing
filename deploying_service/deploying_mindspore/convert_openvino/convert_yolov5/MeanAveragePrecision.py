@@ -1,5 +1,5 @@
 '''评价指标'''
-# pylint:disable=E0401, W0613
+# pylint:disable=E0401, W0613, R1710
 import contextlib
 import io
 import mindspore
