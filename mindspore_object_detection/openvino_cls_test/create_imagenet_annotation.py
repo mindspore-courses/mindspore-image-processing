@@ -16,7 +16,7 @@ classes_dict = {}
 with open("my_labels.txt", "w", encoding='utf-8') as lw:
     # 注意，没有背景时，index要从0开始
     for index, c in enumerate(classes_info, start=0):
-        txt = "{}:{}".format(index, c)
+        txt = f"{index}:{c}"
         if index != len(classes_info):
             txt += "\n"
         lw.write(txt)

@@ -1,16 +1,16 @@
 mindcv==0.2.2
-numpy==1.21.6
+numpy
 onnx
-onnxruntime-gpu==1.15.1
-opencv-python==4.8.0.74
+onnxruntime-gpu
+opencv-python
 mindspore==2.0.0
-pylint==2.7.4
-Flask==2.0.2
-Flask_Cors==3.0.9
+pylint
+Flask
+Flask_Cors
 Pillow
 absl-py
-nvidia-tensorrt==8.4.1.5
-protobuf==3.19.5
-openvino-dev==2022.1.0
+nvidia-tensorrt
+protobuf
+openvino-dev
 https://ms-release.obs.cn-north-4.myhuaweicloud.com/2.0.0a0/GoldenStick/any/mindspore_gs-0.3.0-py3-none-any.whl --trusted-host ms-release.obs.cn-north-4.myhuaweicloud.com -i https://pypi.tuna.tsinghua.edu.cn/simple
 https://ms-release.obs.cn-north-4.myhuaweicloud.com/1.9.0/Hub/any/mindspore_hub-1.9.0-py3-none-any.whl --trusted-host ms-release.obs.cn-north-4.myhuaweicloud.com -i https://pypi.tuna.tsinghua.edu.cn/simple
