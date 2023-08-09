@@ -1,5 +1,5 @@
 mindcv==0.2.2
-numpy==1.17.3
+numpy==1.21.6
 onnx
 onnxruntime-gpu==1.15.1
 opencv-python==4.8.0.74
