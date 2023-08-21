@@ -1,9 +1,13 @@
+'''数据制作'''
+# pylint:disable=E0401
 import os
 from tqdm import tqdm
 from lxml import etree
 
 
-class VOCDataSet(object):
+class VOCDataSet():
+    '''自定义数据集'''
+
     def __init__(self, voc_root, year="2012", txt_name: str = "train.txt"):
         assert year in ["2007", "2012"], "year must be in ['2007', '2012']"
         self.root = os.path.join(voc_root, "VOCdevkit", f"VOC{year}")
@@ -18,9 +22,11 @@ class VOCDataSet(object):
                              for line in read.readlines() if len(line.strip()) > 0]
 
         # check file
-        assert len(self.xml_list) > 0, "in '{}' file does not find any information.".format(txt_path)
+        assert len(
+            self.xml_list) > 0, "in '{}' file does not find any information.".format(txt_path)
         for xml_path in self.xml_list:
-            assert os.path.exists(xml_path), "not found '{}' file.".format(xml_path)
+            assert os.path.exists(
+                xml_path), "not found '{}' file.".format(xml_path)
 
     def __len__(self):
         return len(self.xml_list)
@@ -50,6 +56,7 @@ class VOCDataSet(object):
         return {xml.tag: result}
 
     def get_info(self):
+        '''获取信息'''
         im_wh_list = []
         boxes_wh_list = []
         for xml_path in tqdm(self.xml_list, desc="read data info."):
@@ -67,7 +74,8 @@ class VOCDataSet(object):
                 xmax = float(obj["bndbox"]["xmax"])
                 ymin = float(obj["bndbox"]["ymin"])
                 ymax = float(obj["bndbox"]["ymax"])
-                wh.append([(xmax - xmin) / im_width, (ymax - ymin) / im_height])
+                wh.append([(xmax - xmin) / im_width,
+                          (ymax - ymin) / im_height])
 
             if len(wh) == 0:
                 continue

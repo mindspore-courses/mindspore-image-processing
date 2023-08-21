@@ -1,4 +1,5 @@
 '''膨胀卷积'''
+# pylint:diable=E0401
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap

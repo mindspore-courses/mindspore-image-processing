@@ -1,3 +1,5 @@
+'''绘图'''
+# pylint:disable=E0401
 import numpy as np
 from matplotlib import pyplot as plt
 np.random.seed(0)
@@ -6,13 +8,14 @@ colors = np.array(['blue', 'black'])
 
 
 def plot_clusters(data, cls, clusters, title=""):
+    '''绘图'''
     if cls is None:
         c = [colors[0]] * data.shape[0]
     else:
         c = colors[cls].tolist()
 
     plt.scatter(data[:, 0], data[:, 1], c=c)
-    for i, clus in enumerate(clusters):
+    for _, clus in enumerate(clusters):
         plt.scatter(clus[0], clus[1], c='gold', marker='*', s=150)
     plt.title(title)
     plt.show()
@@ -20,6 +23,7 @@ def plot_clusters(data, cls, clusters, title=""):
 
 
 def distances(data, clusters):
+    '''距离'''
     xy1 = data[:, None]  # [N,1,2]
     xy2 = clusters[None]  # [1,M,2]
     d = np.sum(np.power(xy2 - xy1, 2), axis=-1)
@@ -50,7 +54,7 @@ def k_means(data, k, dist=np.mean):
 
         # plot
         plot_clusters(data, current_nearest, clusters, f"step {step}")
-        
+
         if (last_nearest == current_nearest).all():
             break  # clusters won't change
         for cluster in range(k):
@@ -63,6 +67,7 @@ def k_means(data, k, dist=np.mean):
 
 
 def main():
+    '''主函数'''
     x1, y1 = [np.random.normal(loc=1., size=150) for _ in range(2)]
     x2, y2 = [np.random.normal(loc=5., size=150) for _ in range(2)]
 

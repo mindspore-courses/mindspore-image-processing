@@ -1,3 +1,5 @@
+'''主程序文件'''
+# pylint: disable=E0401
 import os
 
 from tqdm import tqdm
@@ -6,6 +8,7 @@ from create_xml import create_pascal_voc_xml
 
 
 def create_xml(labels: list, img_root: str, img_path: str, save_root: str) -> bool:
+    '''生成xml文件'''
     source_dict = {'database': 'The WIDERFACE2017 Database',
                    'annotation': 'WIDERFACE 2017',
                    'image': 'WIDERFACE'}
@@ -46,8 +49,8 @@ def create_xml(labels: list, img_root: str, img_path: str, save_root: str) -> bo
         #     cv2.waitKey(0)
 
         ob_list.append(ob_dict)
-    
-    if len(ob_list) == 0: 
+
+    if len(ob_list) == 0:
         print(f"in {img_path}, no object, skip.")
         return False
 
@@ -69,14 +72,16 @@ def parse_wider_txt(data_root: str, split: str, save_root: str):
     :param save_root:
     :return:
     """
-    assert split in ['train', 'val'], f"split must be in ['train', 'val'], got {split}"
+    assert split in [
+        'train', 'val'], f"split must be in ['train', 'val'], got {split}"
 
     if os.path.exists(save_root) is False:
         os.makedirs(save_root)
 
-    txt_path = os.path.join(data_root, 'wider_face_split', f'wider_face_{split}_bbx_gt.txt')
+    txt_path = os.path.join(data_root, 'wider_face_split',
+                            f'wider_face_{split}_bbx_gt.txt')
     img_root = os.path.join(data_root, f'WIDER_{split}', 'images')
-    with open(txt_path, "r") as f:
+    with open(txt_path, "r", encoding='utf-8') as f:
         lines = f.readlines()
         file_name_line, num_boxes_line, box_annotation_line = True, False, False
         num_boxes, box_counter, idx = 0, 0, 0
@@ -96,7 +101,7 @@ def parse_wider_txt(data_root: str, split: str, save_root: str):
             elif box_annotation_line:
                 box_counter += 1
                 line_split = line.split(" ")
-                line_values = [x for x in line_split]
+                line_values = list(line_split)
                 labels.append(line_values)
                 if box_counter >= num_boxes:
                     box_annotation_line = False
@@ -107,16 +112,18 @@ def parse_wider_txt(data_root: str, split: str, save_root: str):
                     else:
                         if create_xml(labels, img_root, img_path, save_root):
                             # 只记录有目标的xml文件
-                            xml_list.append(img_path.split("/")[-1].split(".")[0])
+                            xml_list.append(img_path.split("/")
+                                            [-1].split(".")[0])
 
                     box_counter = 0
                     labels.clear()
                     idx += 1
                     progress_bar.set_description(f"{idx} images")
             else:
-                raise RuntimeError("Error parsing annotation file {}".format(txt_path))
+                raise RuntimeError(
+                    "Error parsing annotation file {}".format(txt_path))
 
-        with open(split+'.txt', 'w') as w:
+        with open(split+'.txt', 'w', encoding='utf-8') as w:
             w.write("\n".join(xml_list))
 
 

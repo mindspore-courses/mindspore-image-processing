@@ -1,3 +1,5 @@
+'''格式转换'''
+# pylint: disable=E0401,E0611
 import os
 import time
 import mindspore

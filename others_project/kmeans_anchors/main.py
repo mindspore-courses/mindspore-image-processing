@@ -1,4 +1,5 @@
 '''主程序'''
+# pylint:disable=E0401, E0611, E1123
 import random
 import numpy as np
 from tqdm import tqdm
@@ -8,7 +9,8 @@ from read_voc import VOCDataSet
 from yolo_kmeans import k_means, wh_iou
 
 
-def anchor_fitness(k: np.ndarray, wh: np.ndarray, thr: float):  # mutation fitness
+def anchor_fitness(k: np.ndarray, wh: np.ndarray, thr: float):
+    '''mutation fitness'''
     r = wh[:, None] / k[None]
     x = np.minimum(r, 1. / r).min(2)  # ratio metric
     # x = wh_iou(wh, k)  # iou metric
@@ -55,7 +57,7 @@ def main(img_size=512, n=9, thr=0.25, gen=1000):
     # fitness, generations, mutation prob, sigma
     f, sh, mp, s = anchor_fitness(k, wh, thr)[0], k.shape, 0.9, 0.1
     # progress bar
-    pbar = tqdm(range(gen), desc=f'Evolving anchors with Genetic Algorithm:')
+    pbar = tqdm(range(gen), desc='Evolving anchors with Genetic Algorithm:')
     for _ in pbar:
         v = np.ones(sh)
         while (v == 1).all():  # mutate until a change occurs (prevent duplicates)

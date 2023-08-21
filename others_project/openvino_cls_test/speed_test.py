@@ -1,3 +1,5 @@
+'''测试'''
+# pylint: disable=E0401, E0611
 import os
 import time
 import mindspore
@@ -23,6 +25,7 @@ def to_numpy(tensor):
 
 
 def mindspore_model_speed(data_loader, val_num):
+    '''mindspore框架'''
     net = resnet34(num_classes=5)
     # load weights
     model_weight_path = "./resNet34.ckpt"
@@ -54,6 +57,7 @@ def mindspore_model_speed(data_loader, val_num):
 
 
 def onnx_model_speed(data_loader, val_num):
+    '''onnx格式模型'''
     # check onnx model
     onnx_path = "./resnet34.onnx"
     check_path_exist(onnx_path)
@@ -82,6 +86,7 @@ def onnx_model_speed(data_loader, val_num):
 
 
 def openvino_model_speed(data_loader, val_num):
+    '''openvino模型'''
     device = "CPU"
     model_xml_path = "./resnet34r.xml"
     model_bin_path = "./resnet34r.bin"
@@ -137,6 +142,7 @@ def openvino_model_speed(data_loader, val_num):
 
 
 def main():
+    '''主函数'''
     data_transform = ds.transforms.Compose([ds.vision.Resize(224),
                                             ds.vision.ToTensor(),
                                             ds.vision.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])

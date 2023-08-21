@@ -1,10 +1,12 @@
+'''主程序文件'''
+# pylint:diasble=E0401, E0611
 import sys
-import cv2
 import os
 import glob
 import json
-import numpy as np
 import logging as log
+import cv2
+import numpy as np
 from openvino.inference_engine import IECore
 
 
@@ -47,7 +49,7 @@ def main():
             l for l in net.layers.keys() if l not in supported_layers]
         if len(not_supported_layers) > 0:
             log.error(
-                f"device {device} not support layers: {not_supported_layers}")
+                "device {} not support layers: {}" % device, not_supported_layers)
             log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
                       "or --cpu_extension command line argument")
             sys.exit(1)
@@ -61,7 +63,7 @@ def main():
     net.batch_size = batch_size
 
     # read and pre-process input images
-    n, c, h, w = net.input_info[input_blob].input_data.shape
+    _, _, h, w = net.input_info[input_blob].input_data.shape
     # images = np.ndarray(shape=(n, c, h, w))
     # inference every image
     for i, _ in enumerate(image_list):

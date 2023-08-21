@@ -1,12 +1,15 @@
+'''kmeans算法'''
 import numpy as np
 
 
 def wh_iou(wh1, wh2):
+    '''度量函数'''
     # Returns the nxm IoU matrix. wh1 is nx2, wh2 is mx2
     wh1 = wh1[:, None]  # [N,1,2]
     wh2 = wh2[None]  # [1,M,2]
     inter = np.minimum(wh1, wh2).prod(2)  # [N,M]
-    return inter / (wh1.prod(2) + wh2.prod(2) - inter)  # iou = inter / (area1 + area2 - inter)
+    # iou = inter / (area1 + area2 - inter)
+    return inter / (wh1.prod(2) + wh2.prod(2) - inter)
 
 
 def k_means(boxes, k, dist=np.median):
