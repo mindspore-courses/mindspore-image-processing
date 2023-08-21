@@ -43,6 +43,9 @@ jobs:
       - name: Analysing the deploying_service code with pylint
         run: |
           pylint deploying_service --rcfile=.github/pylint.conf
+      - name: Analysing the others_project code with pylint
+        run: |
+          pylint others_project --rcfile=.github/pylint.conf
       - name: Analysing the mindspore_object_detection code with pylint
         run: |
           pylint mindspore_object_detection --rcfile=.github/pylint.conf
@@ -55,6 +58,3 @@ jobs:
       - name: Analysing the mindspore_segmentation code with pylint
         run: |
           pylint mindspore_segmentation --rcfile=.github/pylint.conf
-      - name: Analysing the others_project code with pylint
-        run: |
-          pylint others_project --rcfile=.github/pylint.conf
