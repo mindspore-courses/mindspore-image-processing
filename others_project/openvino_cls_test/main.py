@@ -1,5 +1,5 @@
 '''主程序文件'''
-# pylint:diasble=E0401, E0611
+# pylint:disable=E0401, E0611
 import sys
 import os
 import glob
@@ -49,7 +49,7 @@ def main():
             l for l in net.layers.keys() if l not in supported_layers]
         if len(not_supported_layers) > 0:
             log.error(
-                "device {} not support layers: {}" % device, not_supported_layers)
+                "device %s not support layers: %s", device, not_supported_layers)
             log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
                       "or --cpu_extension command line argument")
             sys.exit(1)

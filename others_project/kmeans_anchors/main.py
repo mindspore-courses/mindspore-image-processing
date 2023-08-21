@@ -1,5 +1,5 @@
 '''主程序'''
-# pylint:disable=E0401, E0611, E1123
+# pylint: disable=E0401, W0611, E1123
 import random
 import numpy as np
 from tqdm import tqdm
