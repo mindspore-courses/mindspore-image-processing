@@ -101,7 +101,7 @@ class ResNet(nn.Cell):
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # output size = (1, 1)
             self.fc = nn.Dense(512 * block.expansion, num_classes)
 
-        for cell in self.cells():
+        for cell in self.modules():
             if isinstance(cell, nn.Conv2d):
                 cell.weight.set_data(ms.common.initializer.initializer(
                     ms.common.initializer.HeNormal(
@@ -128,22 +128,25 @@ class ResNet(nn.Cell):
 
     def construct(self, x):
         '''Resnet construct.'''
+        outputs = []
         x = self.conv1(x)
+        outputs.append(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
         x = self.layer1(x)
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x = self.layer4(x)
+        outputs.append(x)
+        # x = self.layer2(x)
+        # x = self.layer3(x)
+        # x = self.layer4(x)
+        #
+        # if self.include_top:
+        #     x = self.avgpool(x)
+        #     x = torch.flatten(x, 1)
+        #     x = self.fc(x)
 
-        if self.include_top:
-            x = self.avgpool(x)
-            x = nn.Flatten(x, 1)
-            x = self.fc(x)
-
-        return x
+        return outputs
 
 
 def resnet34(num_classes=1000, include_top=True):
