@@ -50,6 +50,7 @@ def dilated_conv_all_map(dilated_map: np.ndarray,
 
 
 def plot_map(matrix: np.ndarray):
+    '''绘图'''
     plt.figure()
 
     c_list = ['white', 'blue', 'red']
@@ -90,7 +91,7 @@ def main():
     # print(m)
     # plot_map(m)
 
-    for index, dilated_r in enumerate(dilated_rates[::-1]):
+    for _, dilated_r in enumerate(dilated_rates[::-1]):
         new_map = dilated_conv_all_map(m, r=dilated_r)
         m = new_map
     print(m)
