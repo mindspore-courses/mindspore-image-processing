@@ -1,5 +1,5 @@
 '''特征图分析'''
-# pylint:disable=W0611
+# pylint:disable=W0611,E0401
 import mindspore
 import mindspore.dataset as ds
 from alexnet_model import AlexNet
@@ -10,7 +10,7 @@ from PIL import Image
 import cv2
 
 
-def transform_image(img):
+def transform_image(image):
     '''图像变换'''
     if image.mode != "RGB":
         raise ValueError("input file does not RGB image...")

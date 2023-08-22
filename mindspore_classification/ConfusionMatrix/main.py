@@ -1,4 +1,5 @@
 '''计算混淆矩阵'''
+# pylint:disable=E0401,W0611
 import os
 import json
 
@@ -19,17 +20,18 @@ class ConfusionMatrix():
     需要额外安装prettytable库
     """
 
-    def __init__(self, num_classes: int, labels: list):
+    def __init__(self, num_classes, labels):
         self.matrix = np.zeros((num_classes, num_classes))
         self.num_classes = num_classes
         self.labels = labels
 
     def update(self, preds, labels):
+        '''更新数据'''
         for p, t in zip(preds, labels):
             self.matrix[p, t] += 1
 
     def summary(self):
-        # calculate accuracy
+        '''calculate accuracy'''
         sum_TP = 0
         for i in range(self.num_classes):
             sum_TP += self.matrix[i, i]
@@ -51,6 +53,7 @@ class ConfusionMatrix():
         print(table)
 
     def plot(self):
+        '''绘图'''
         matrix = self.matrix
         print(matrix)
         plt.imshow(matrix, cmap=plt.cm.Blues)
