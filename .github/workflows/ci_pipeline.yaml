@@ -5,14 +5,24 @@ name: CI Pipe
 
 on:
   pull_request:
-    branches: [ "mian" ]
+    branches: ["mian"]
     paths:
-      - 'deploying_service/**'
-      - '.github/workflows/**'
+      - "deploying_service/**"
+      - "mindspore_object_detection/**"
+      - "mindspore_classification/**"
+      - "mindspore_keypoint/**"
+      - "mindspore_segmentation/**"
+      - "others_project/**"
+      - ".github/workflows/**"
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'deploying_service/**'
+      - "deploying_service/**"
+      - "mindspore_object_detection/**"
+      - "mindspore_classification/**"
+      - "mindspore_keypoint/**"
+      - "mindspore_segmentation/**"
+      - "others_project/**"
 
 permissions:
   contents: read
@@ -21,16 +31,30 @@ jobs:
   pylint-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --user --upgrade pip==23.2.1
-        pip install -r requirements.txt
-    - name: Analysing the deploying_service code with pylint
-      run: |
-        pylint deploying_service --rcfile=.github/pylint.conf
-  
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --user --upgrade pip==23.2.1
+          pip install -r requirements.txt
+      - name: Analysing the deploying_service code with pylint
+        run: |
+          pylint deploying_service --rcfile=.github/pylint.conf
+      - name: Analysing the others_project code with pylint
+        run: |
+          pylint others_project --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_classification code with pylint
+        run: |
+          pylint mindspore_classification --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_object_detection code with pylint
+        run: |
+          pylint mindspore_object_detection --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_keypoint code with pylint
+        run: |
+          pylint mindspore_keypoint --rcfile=.github/pylint.conf
+      - name: Analysing the mindspore_segmentation code with pylint
+        run: |
+          pylint mindspore_segmentation --rcfile=.github/pylint.conf
