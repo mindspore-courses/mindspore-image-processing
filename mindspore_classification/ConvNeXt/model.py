@@ -40,7 +40,7 @@ class ConvNextLayerNorm(nn.LayerNorm):
     """ConvNextLayerNorm"""
 
     def __init__(self, normalized_shape, epsilon, norm_axis=-1):
-        super(ConvNextLayerNorm, self).__init__(
+        super().__init__(
             normalized_shape=normalized_shape, epsilon=epsilon)
         assert norm_axis in (-1,
                              1), "ConvNextLayerNorm's norm_axis must be 1 or -1."
@@ -73,16 +73,14 @@ class Block(nn.Cell):
                  layer_scale_init_value: float = 1e-6):
         super().__init__()
         # MindSpore和torch都是用全连接层实现1*1卷积和逐点卷积
-        self.block = nn.SequentialCell(
-            nn.Conv2d(dim, dim, kernel_size=7, group=dim,
-                      has_bias=True),  # depthwise conv
-            ops.transpose((0, 2, 3, 1)),
-            ConvNextLayerNorm((dim,), epsilon=1e-6),
-            # pointwise/1x1 convs, implemented with Dense layers
-            nn.Dense(dim, 4 * dim),
-            nn.GELU(),
-            nn.Dense(4 * dim, dim)
-        )
+        self.dwconv = nn.Conv2d(dim, dim, kernel_size=7,
+                                group=dim, has_bias=True)  # depthwise conv
+        self.norm = ConvNextLayerNorm((dim,), epsilon=1e-6)
+        # pointwise/1x1 convs, implemented with Dense layers
+        self.pwconv1 = nn.Dense(dim, 4 * dim)
+        self.act = nn.GELU()
+        self.pwconv2 = nn.Dense(4 * dim, dim)
+
         self.gamma = Parameter(Tensor(layer_scale_init_value * np.ones(dim), dtype=mstype.float32),
                                requires_grad=True) if layer_scale_init_value > 0 else None
         # 对于训练时随机丢弃网络节点的拓扑结构变化操作，MindSpore使用的DropPath算子，而torch使用的是随机深度算子
@@ -92,7 +90,12 @@ class Block(nn.Cell):
     def construct(self, x):
         """Block construct"""
         downsample = x
-        x = self.block(x)
+        x = self.dwconv(x)
+        x = ops.transpose(x, (0, 2, 3, 1))
+        x = self.norm(x)
+        x = self.pwconv1(x)
+        x = self.act(x)
+        x = self.pwconv2(x)
         if self.gamma is not None:
             x = self.gamma * x
         x = ops.Transpose()(x, (0, 3, 1, 2))
@@ -137,7 +140,7 @@ class ConvNeXt(nn.Cell):
 
         # 4 feature resolution stages, each consisting of multiple residual blocks
         self.stages = nn.CellList()
-        dp_rates = [x for x in np.linspace(0, drop_path_rate, sum(depths))]
+        dp_rates = list(x for x in np.linspace(0, drop_path_rate, sum(depths)))
         cur = 0
         for i in range(4):
             blocks = []

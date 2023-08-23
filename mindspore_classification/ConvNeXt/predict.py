@@ -1,10 +1,11 @@
 '''模型验证'''
+# pylint:disable=E0401
 import os
 import json
 
 import mindspore
-from PIL import Image
 import mindspore.dataset as ds
+from PIL import Image
 import matplotlib.pyplot as plt
 
 from model import convnext_tiny as create_model
@@ -36,9 +37,9 @@ def main():
     # read class_indict
     json_path = './class_indices.json'
     assert os.path.exists(
-        json_path), "file: '{}' dose not exist.".format(json_path)
+        json_path), f"file: '{json_path}' dose not exist."
 
-    with open(json_path, "r") as f:
+    with open(json_path, "r", encoding='utf-8') as f:
         class_indict = json.load(f)
 
     # create model
@@ -54,12 +55,11 @@ def main():
     predict = mindspore.ops.softmax(output, axis=0)
     predict_cla = mindspore.ops.argmax(predict).asnumpy()
 
-    print_res = "class: {}   prob: {:.3}".format(class_indict[str(predict_cla)],
-                                                 predict[predict_cla].numpy())
+    print_res = f"class: {class_indict[str(predict_cla)]}   prob: {predict[predict_cla].asnumpy():.3}"
     plt.title(print_res)
-    for i in range(len(predict)):
-        print("class: {:10}   prob: {:.3}".format(class_indict[str(i)],
-                                                  predict[i].numpy()))
+    for i, _ in enumerate(predict):
+        print(
+            f"class: {class_indict[str(i)]:10}   prob: {predict[i].asnumpy():.3}")
     plt.show()
 
 

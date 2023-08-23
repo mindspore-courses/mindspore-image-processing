@@ -1,13 +1,7 @@
-'''工具类'''
-# pylint:disable=E0401
 import os
-import sys
 import json
 import pickle
 import random
-
-import mindspore
-from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 
@@ -16,12 +10,12 @@ def read_split_data(root: str, val_rate: float = 0.2):
     '''数据分割'''
     random.seed(0)  # 保证随机结果可复现
     assert os.path.exists(
-        root), f"dataset root: {root} does not exist."
+        root), "dataset root: {} does not exist.".format(root)
 
     # 遍历文件夹，一个文件夹对应一个类别
     flower_class = [cla for cla in os.listdir(
         root) if os.path.isdir(os.path.join(root, cla))]
-    # 排序，保证各平台顺序一致
+    # 排序，保证顺序一致
     flower_class.sort()
     # 生成类别名称以及对应的数字索引
     class_indices = dict((k, v) for v, k in enumerate(flower_class))
@@ -42,8 +36,6 @@ def read_split_data(root: str, val_rate: float = 0.2):
         # 遍历获取supported支持的所有文件路径
         images = [os.path.join(root, cla, i) for i in os.listdir(cla_path)
                   if os.path.splitext(i)[-1] in supported]
-        # 排序，保证各平台顺序一致
-        images.sort()
         # 获取该类别对应的索引
         image_class = class_indices[cla]
         # 记录该类别的样本数量
@@ -62,10 +54,6 @@ def read_split_data(root: str, val_rate: float = 0.2):
     print(f"{sum(every_class_num)} images were found in the dataset.")
     print(f"{len(train_images_path)} images for training.")
     print(f"{len(val_images_path)} images for validation.")
-    assert len(
-        train_images_path) > 0, "number of training images must greater than 0."
-    assert len(
-        val_images_path) > 0, "number of validation images must greater than 0."
 
     plot_image = False
     if plot_image:
@@ -114,117 +102,13 @@ def plot_data_loader_image(data_loader):
 
 
 def write_pickle(list_info: list, file_name: str):
-    '''写入'''
-    with open(file_name, 'wb', encoding='utf-8') as f:
+    '''写'''
+    with open(file_name, 'wb') as f:
         pickle.dump(list_info, f)
 
 
 def read_pickle(file_name: str) -> list:
-    '''读取'''
-    with open(file_name, 'rb', encoding='utf-8') as f:
+    '''读'''
+    with open(file_name, 'rb') as f:
         info_list = pickle.load(f)
         return info_list
-
-
-def train_one_epoch(model, optimizer, data_loader, epoch):
-    '''训练'''
-    model.set_train(True)
-    criterion = mindspore.nn.CrossEntropyLoss()
-    accu_loss = mindspore.ops.zeros(1)  # 累计损失
-    accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
-
-    # 前向传播
-
-    def forward_fn(data, label):
-        logits = model(data)
-        loss = criterion(logits, label)
-        return loss, logits
-
-    # 梯度函数
-    grad_fn = mindspore.value_and_grad(
-        forward_fn, None, optimizer.parameters, has_aux=True)
-
-    # 更新，训练
-    def train_step(data, label):
-        (loss, logits), grads = grad_fn(data, label)
-        optimizer(grads)
-        return loss, logits
-
-    sample_num = 0
-    data_loader = tqdm(data_loader, file=sys.stdout)
-    step = 0
-    for step, data in enumerate(data_loader):
-        images, labels = data
-        sample_num += images.shape[0]
-
-        loss, pred = train_step(images, labels)
-        pred_classes = mindspore.ops.max(pred, axis=1)[1]
-        accu_num += mindspore.ops.equal(pred_classes, labels).sum()
-
-        accu_loss += loss.detach()
-
-        data_loader.desc = "[train epoch {}] loss: {:.3f}, acc: {:.3f}, lr: {:.5f}".format(
-            epoch,
-            accu_loss.item() / (step + 1),
-            accu_num.item() / sample_num,
-            optimizer.learning_rate.data.asnumpy()
-        )
-
-    return accu_loss.item() / (step + 1), accu_num.item() / sample_num
-
-
-def evaluate(model, data_loader, epoch):
-    '''验证'''
-    loss_function = mindspore.nn.CrossEntropyLoss()
-
-    model.set_train(False)
-    accu_loss = mindspore.ops.zeros(1)  # 累计损失
-    accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
-
-    sample_num = 0
-    data_loader = tqdm(data_loader, file=sys.stdout)
-    step = 0
-    for step, data in enumerate(data_loader):
-        images, labels = data
-        sample_num += images.shape[0]
-
-        pred = model(images)
-        pred_classes = mindspore.ops.max(pred, axis=1)[1]
-        accu_num += mindspore.ops.equal(pred_classes, labels).sum()
-
-        loss = loss_function(pred, labels)
-        accu_loss += loss
-
-        data_loader.desc = "[valid epoch {}] loss: {:.3f}, acc: {:.3f}".format(
-            epoch,
-            accu_loss.item() / (step + 1),
-            accu_num.item() / sample_num
-        )
-
-    return accu_loss.item() / (step + 1), accu_num.item() / sample_num
-
-
-def get_params_groups(model, weight_decay=1e-5):
-    '''获取参数列表'''
-    # 记录optimize要训练的权重参数
-    parameter_group_vars = {"decay": {"params": [], "weight_decay": weight_decay},
-                            "no_decay": {"params": [], "weight_decay": 0.}}
-
-    # 记录对应的权重名称
-    parameter_group_names = {"decay": {"params": [], "weight_decay": weight_decay},
-                             "no_decay": {"params": [], "weight_decay": 0.}}
-
-    for name, param in model.get_parameters():
-        if not param.requires_grad:
-            continue  # frozen weights
-
-        if len(param.shape) == 1 or name.endswith(".bias"):
-            group_name = "no_decay"
-        else:
-            group_name = "decay"
-
-        parameter_group_vars[group_name]["params"].append(param)
-        parameter_group_names[group_name]["params"].append(name)
-
-    print("Param groups = %s" % json.dumps(parameter_group_names, indent=2))
-    return list(parameter_group_vars.values())

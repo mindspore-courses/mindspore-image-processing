@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # load pretrain weights
     model_weight_path = "./MobileNetV2.ckpt"
     assert os.path.exists(
-        model_weight_path), "cannot find {} file".format(model_weight_path)
+        model_weight_path), f"cannot find {model_weight_path} file"
     param_not_load, _ = mindspore.load_param_into_net(
         net, mindspore.load_checkpoint(model_weight_path))
     print(param_not_load)
@@ -121,11 +121,11 @@ if __name__ == '__main__':
     json_label_path = './class_indices.json'
     assert os.path.exists(
         json_label_path), f"cannot find {json_label_path} file"
-    json_file = open(json_label_path, 'r')
+    json_file = open(json_label_path, 'r', encoding='utf-8')
     class_indict = json.load(json_file)
 
-    labels = [label for _, label in class_indict.items()]
-    confusion = ConfusionMatrix(num_classes=5, labels=labels)
+    m_labels = [label for _, label in class_indict.items()]
+    confusion = ConfusionMatrix(num_classes=5, labels=m_labels)
     net.set_train(False)
     for val_data in tqdm(validate_loader):
         val_images, val_labels = val_data
