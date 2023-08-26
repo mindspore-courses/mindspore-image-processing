@@ -1,4 +1,5 @@
 '''工具类'''
+# pylint:disable=W0622
 import cv2
 import numpy as np
 
@@ -17,23 +18,20 @@ class ActivationsAndGradients:
             self.handles.append(
                 target_layer.register_forward_hook(
                     self.save_activation))
-            # Backward compatibility with older pytorch versions:
-            if hasattr(target_layer, 'register_full_backward_hook'):
-                self.handles.append(
-                    target_layer.register_full_backward_hook(
-                        self.save_gradient))
-            else:
-                self.handles.append(
-                    target_layer.register_backward_hook(
-                        self.save_gradient))
+            # Backward compatibility
+            self.handles.append(
+                target_layer.register_backward_hook(
+                    self.save_gradient))
 
     def save_activation(self, module, input, output):
+        '''前向传播'''
         activation = output
         if self.reshape_transform is not None:
             activation = self.reshape_transform(activation)
         self.activations.append(activation.detach())
 
     def save_gradient(self, module, grad_input, grad_output):
+        '''反向传播'''
         # Gradients are computed in reverse order
         grad = grad_output[0]
         if self.reshape_transform is not None:
@@ -138,11 +136,9 @@ class GradCAM:
             target_category = np.argmax(output.data.asnumpy(), axis=-1)
             print(f"category id: {target_category}")
         else:
-            assert (len(target_category) == input_tensor.size(0))
+            assert len(target_category) == input_tensor.size(0)
 
-        self.model.zero_grad()
         loss = self.get_loss(output, target_category)
-        loss.backward(retain_graph=True)
 
         # In most of the saliency attribution papers, the saliency is
         # computed with a single target layer.

@@ -1,3 +1,5 @@
+'''工具类'''
+# pylint:disable=E0401, W0611
 import os
 import sys
 import json
@@ -11,6 +13,7 @@ import matplotlib.pyplot as plt
 
 
 def read_split_data(root: str, val_rate: float = 0.2):
+    '''数据分割'''
     random.seed(0)  # 保证随机结果可复现
     assert os.path.exists(
         root), "dataset root: {} does not exist.".format(root)
@@ -85,6 +88,7 @@ def read_split_data(root: str, val_rate: float = 0.2):
 
 
 def plot_data_loader_image(data_loader):
+    '''数据绘制'''
     batch_size = data_loader.batch_size
     plot_num = min(batch_size, 4)
 
@@ -110,11 +114,13 @@ def plot_data_loader_image(data_loader):
 
 
 def write_pickle(list_info: list, file_name: str):
+    '''写'''
     with open(file_name, 'wb') as f:
         pickle.dump(list_info, f)
 
 
 def read_pickle(file_name: str) -> list:
+    '''读'''
     with open(file_name, 'rb') as f:
         info_list = pickle.load(f)
         return info_list
@@ -145,6 +151,7 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
         return loss, logits
 
     sample_num = 0
+    step = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
     for step, data in enumerate(data_loader):
         images, labels = data
@@ -173,6 +180,7 @@ def evaluate(model, data_loader, epoch):
     accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
 
     sample_num = 0
+    step = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
     for step, data in enumerate(data_loader):
         images, labels = data

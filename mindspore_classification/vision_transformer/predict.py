@@ -1,3 +1,5 @@
+'''模型预测'''
+# pylint:disable=E0401, W0611
 import os
 import json
 
@@ -46,16 +48,16 @@ def main():
     param_not_load, _ = mindspore.load_param_into_net(model, param_dict)
     print(param_not_load)
     model.set_train(False)
-    with torch.no_grad():
-        # predict class
-        output = mindspore.ops.squeeze(model(img))
-        predict = mindspore.ops.softmax(output, axis=0)
-        predict_cla = mindspore.ops.argmax(predict).asnumpy()
+
+    # predict class
+    output = mindspore.ops.squeeze(model(img))
+    predict = mindspore.ops.softmax(output, axis=0)
+    predict_cla = mindspore.ops.argmax(predict).asnumpy()
 
     print_res = "class: {}   prob: {:.3}".format(class_indict[str(predict_cla)],
                                                  predict[predict_cla].asnumpy())
     plt.title(print_res)
-    for i in range(len(predict)):
+    for i, _ in enumerate(predict):
         print("class: {:10}   prob: {:.3}".format(class_indict[str(i)],
                                                   predict[i].asnumpy()))
     plt.show()

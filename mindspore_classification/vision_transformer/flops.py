@@ -1,3 +1,5 @@
+'''浮点数分析'''
+# pylint:disable=E0401, W0611
 import mindspore
 import mindspore.nn as nn
 from vit_model import Attention
@@ -22,12 +24,13 @@ def flop_count_analysis(model, input_size):
     '''结果累加'''
     total_flops = 0
     for layer in model.cells():
-        if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Dense):
+        if isinstance(layer, (nn.Conv2d, nn.Dense)):
             total_flops += count_flops(layer, input_size)
     return total_flops
 
 
 def main():
+    '''主函数'''
     # Self-Attention
     a1 = Attention(dim=512, num_heads=1)
     a1.proj = mindspore.nn.Identity()  # remove Wo

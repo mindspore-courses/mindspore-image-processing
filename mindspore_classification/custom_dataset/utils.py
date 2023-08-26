@@ -1,3 +1,5 @@
+'''工具类'''
+# pylint:disable=E0401
 import os
 import json
 import pickle

@@ -1,3 +1,5 @@
+'''模型训练'''
+# pylint:disable=E0401, W0611
 import os
 import math
 import argparse

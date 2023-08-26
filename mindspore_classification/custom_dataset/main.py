@@ -1,4 +1,5 @@
 '''主程序'''
+# pylint:disable=E0401, W0611
 import os
 
 import mindspore
@@ -15,7 +16,7 @@ def main():
     '''主函数'''
     mindspore.set_context(device_target="GPU")
 
-    train_images_path, train_images_label, val_images_path, val_images_label = read_split_data(
+    train_images_path, train_images_label, _, _ = read_split_data(
         root)
 
     img_size = 224

@@ -9,45 +9,6 @@ from mindspore import ops as P
 from mindspore.common.initializer import Normal, initializer
 from mindspore.common.parameter import Parameter
 
-# __all__ = [
-#     "ViT",
-#     "vit_b_16_224",
-#     "vit_b_16_384",
-#     "vit_l_16_224",  # train
-#     "vit_l_16_384",
-#     "vit_b_32_224",  # train
-#     "vit_b_32_384",
-#     "vit_l_32_224",  # train
-# ]
-
-
-# def _cfg(url="", **kwargs):
-#     return {
-#         "url": url,
-#         "num_classes": 1000,
-#         "input_size": (3, 224, 224),
-#         "first_conv": "patch_embed.proj",
-#         "classifier": "classifier",
-#         **kwargs,
-#     }
-
-
-# default_cfgs = {
-#     "vit_b_16_224": _cfg(url=""),
-#     "vit_b_16_384": _cfg(
-#         url="", input_size=(3, 384, 384)
-#     ),
-#     "vit_l_16_224": _cfg(url="https://download.mindspore.cn/toolkits/mindcv/vit/vit_l_16_224-f02b2487.ckpt"),
-#     "vit_l_16_384": _cfg(
-#         url="", input_size=(3, 384, 384)
-#     ),
-#     "vit_b_32_224": _cfg(url="https://download.mindspore.cn/toolkits/mindcv/vit/vit_b_32_224-7553218f.ckpt"),
-#     "vit_b_32_384": _cfg(
-#         url="", input_size=(3, 384, 384)
-#     ),
-#     "vit_l_32_224": _cfg(url="https://download.mindspore.cn/toolkits/mindcv/vit/vit_l_32_224-3a961018.ckpt"),
-# }
-
 
 class PatchEmbedding(nn.Cell):
     """
@@ -444,14 +405,17 @@ class BaseClassifier(nn.Cell):
             self.with_head = False
 
     def forward_features(self, x: Tensor) -> Tensor:
+        '''特征计算'''
         x = self.backbone(x)
         return x
 
     def forward_head(self, x: Tensor) -> Tensor:
+        '''模型前部'''
         x = self.head(x)
         return x
 
     def construct(self, x):
+        '''BaseClassifier construct'''
         x = self.forward_features(x)
         if self.with_neck:
             x = self.neck(x)
@@ -461,6 +425,7 @@ class BaseClassifier(nn.Cell):
 
 
 def init(init_type, shape, dtype, name, requires_grad):
+    '''初始化'''
     initial = initializer(init_type, shape, dtype).init_data()
     return Parameter(initial, name=name, requires_grad=requires_grad)
 

@@ -1,3 +1,5 @@
+'''测试vit模型'''
+# pylint:disable=E0401
 import os
 import numpy as np
 import mindspore
@@ -33,6 +35,7 @@ class ReshapeTransform:
 
 
 def main():
+    '''主函数'''
     model = vit_b_16_384()
     weights_path = "./vit_base_patch16_224.ckpt"
     param_dict = mindspore.load_checkpoint(weights_path)

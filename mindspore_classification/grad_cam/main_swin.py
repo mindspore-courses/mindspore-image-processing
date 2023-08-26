@@ -1,3 +1,5 @@
+'''测试swin模型'''
+# pylint:disable=E0401
 import os
 import math
 import numpy as np
@@ -5,18 +7,21 @@ import mindspore
 import mindspore.dataset as ds
 from PIL import Image
 import matplotlib.pyplot as plt
-# from torchvision import transforms
+
 from utils import GradCAM, show_cam_on_image, center_crop_img
 from swin_model import swinv2_base_window7
 
 
 class ResizeTransform:
+    '''图像处理'''
+
     def __init__(self, im_h: int, im_w: int):
         self.height = self.feature_size(im_h)
         self.width = self.feature_size(im_w)
 
     @staticmethod
     def feature_size(s):
+        '''尺寸变化'''
         s = math.ceil(s / 4)  # PatchEmbed
         s = math.ceil(s / 2)  # PatchMerging1
         s = math.ceil(s / 2)  # PatchMerging2
@@ -38,6 +43,7 @@ class ResizeTransform:
 
 
 def main():
+    '''主函数'''
     # 注意输入的图片必须是32的整数倍
     # 否则由于padding的原因会出现注意力飘逸的问题
     img_size = 224

@@ -27,22 +27,28 @@ to_2tuple = _ntuple(2)
 
 
 class Roll(nn.Cell):
+    '''Roll模块'''
+
     def __init__(self, shift_size: int, shift_axis: Tuple[int, int] = (1, 2)) -> None:
         super(Roll, self).__init__()
         self.shift_size = to_2tuple(shift_size)
         self.shift_axis = shift_axis
 
     def construct(self, x: Tensor) -> Tensor:
+        '''Roll construct'''
         x = ms.numpy.roll(x, self.shift_size, self.shift_axis)
         return x
 
 
 class WindowPartition(nn.Cell):
+    '''Window模块'''
+
     def __init__(self, window_size: int) -> None:
         super().__init__()
         self.window_size = window_size
 
     def construct(self, x: Tensor) -> Tensor:
+        '''WindowPartition construct'''
         b, h, w, c = x.shape
         x = x.reshape(b, h // self.window_size, self.window_size,
                       w // self.window_size, self.window_size, c)
@@ -54,6 +60,7 @@ class WindowPartition(nn.Cell):
 
 
 def window_partition(x, window_size):
+    '''返回对应大小窗口'''
     b, h, w, c = x.shape
     x = x.reshape(b, h // window_size, window_size,
                   w // window_size, window_size, c)
@@ -63,10 +70,13 @@ def window_partition(x, window_size):
 
 
 class WindowReverse(nn.Cell):
+    '''反转'''
+
     def __init__(self) -> None:
         super().__init__()
 
     def construct(self, windows: Tensor, window_size: int, h: int, w: int) -> Tensor:
+        '''WindowReverse construct'''
         b = windows.shape[0] // (h * w // window_size // window_size)
         x = windows.reshape(b, h // window_size, w //
                             window_size, window_size, window_size, -1)
@@ -89,6 +99,7 @@ class DropPath(nn.Cell):
         self.dropout = nn.Dropout(p=drop_prob)
 
     def construct(self, x: Tensor) -> Tensor:
+        '''DropPath construct'''
         if self.keep_prob == 1.0 or not self.training:
             return x
         shape = (x.shape[0],) + (1,) * (x.ndim - 1)
@@ -99,6 +110,8 @@ class DropPath(nn.Cell):
 
 
 class LogSpacedCPB(nn.Cell):
+    '''CPB模块'''
+
     def __init__(
         self,
         window_size: Tuple[int, int],
@@ -162,6 +175,7 @@ class LogSpacedCPB(nn.Cell):
         self.sigmoid = ops.Sigmoid()
 
     def construct(self) -> Tensor:
+        '''LogSpacedCPB construct'''
         x = self.cpb_mlp0(self.relative_coords_table)
         x = self.cpb_act1(x)
         x = self.cpb_mlp2(x)
@@ -179,6 +193,8 @@ class LogSpacedCPB(nn.Cell):
 
 
 class WindowCosineAttention(nn.Cell):
+    '''Attention模块'''
+
     def __init__(
         self,
         dim: Union[Tuple[int], int],
@@ -189,7 +205,7 @@ class WindowCosineAttention(nn.Cell):
         proj_drop: float = 0.0,
         pretrained_window_size: Tuple[int, int] = (0, 0),
     ):
-        super(WindowCosineAttention, self).__init__()
+        super().__init__()
         if isinstance(dim, tuple) and len(dim) == 1:
             dim = dim[0]
         self.dim = dim
@@ -222,6 +238,7 @@ class WindowCosineAttention(nn.Cell):
         self.proj_drop = nn.Dropout(p=proj_drop)
 
     def construct(self, x: Tensor, mask=None) -> Tensor:
+        '''Attention construct'''
         B_, N, C = x.shape
 
         q = ops.reshape(
@@ -269,6 +286,8 @@ class WindowCosineAttention(nn.Cell):
 
 
 class Mlp(nn.Cell):
+    '''Mlp模块'''
+
     def __init__(
         self,
         in_features: int,
@@ -288,6 +307,7 @@ class Mlp(nn.Cell):
         self.drop = nn.Dropout(p=drop)
 
     def construct(self, x: Tensor) -> Tensor:
+        '''Mlp construct'''
         x = self.fc1(x)
         x = self.act(x)
         x = self.drop(x)
@@ -297,6 +317,8 @@ class Mlp(nn.Cell):
 
 
 class SwinTransformerBlock(nn.Cell):
+    '''Transform模块'''
+
     def __init__(
         self,
         dim: int,
@@ -313,7 +335,7 @@ class SwinTransformerBlock(nn.Cell):
         norm_layer: nn.Cell = nn.LayerNorm,
         pretrained_window_size: int = 0,
     ) -> None:
-        super(SwinTransformerBlock, self).__init__()
+        super().__init__()
         self.dim = dim
         self.input_resolution = input_resolution
         self.num_heads = num_heads
@@ -381,6 +403,7 @@ class SwinTransformerBlock(nn.Cell):
         self.window_reverse = WindowReverse()
 
     def construct(self, x: Tensor) -> Tensor:
+        '''SwinTransformBlock construct'''
         H, W = self.input_resolution
         B, _, C = x.shape
 
@@ -428,6 +451,8 @@ class SwinTransformerBlock(nn.Cell):
 
 
 class PatchMerging(nn.Cell):
+    '''Merge模块'''
+
     def __init__(
         self,
         input_resolution: Tuple[int, int],
@@ -448,6 +473,7 @@ class PatchMerging(nn.Cell):
         self.H2W2 = int(self.H * self.W // 4)
 
     def construct(self, x: Tensor) -> Tensor:
+        '''PatchMerging construct'''
         B = x.shape[0]
         x = ops.reshape(x, (B, self.H_2, 2, self.W_2, 2, self.dim))
         x = ops.transpose(x, (0, 1, 3, 4, 2, 5))
@@ -459,6 +485,8 @@ class PatchMerging(nn.Cell):
 
 
 class BasicLayer(nn.Cell):
+    '''基本层'''
+
     def __init__(
         self,
         dim: int,
@@ -503,6 +531,7 @@ class BasicLayer(nn.Cell):
             self.downsample = None
 
     def construct(self, x: Tensor) -> Tensor:
+        '''BasicLayer construct'''
         for blk in self.blocks:
             x = blk(x)
         if self.downsample is not None:
@@ -511,6 +540,8 @@ class BasicLayer(nn.Cell):
 
 
 class PatchEmbed(nn.Cell):
+    '''Embed层'''
+
     def __init__(
         self,
         image_size: int = 224,
@@ -543,6 +574,7 @@ class PatchEmbed(nn.Cell):
             self.norm = None
 
     def construct(self, x: Tensor) -> Tensor:
+        '''PatchEmbed construct'''
         B = x.shape[0]
         x = ops.reshape(self.proj(x), (B, self.embed_dim, -1))
         x = ops.transpose(x, (0, 2, 1))  # B Ph*Pw C
@@ -651,6 +683,7 @@ class SwinTransformerV2(nn.Cell):
         self._initialize_weights()
 
     def _initialize_weights(self):
+        '''初始化'''
         for _, cell in self.cells_and_names():
             if isinstance(cell, nn.Conv2d):
                 cell.weight.set_data(init.initializer(
@@ -673,6 +706,7 @@ class SwinTransformerV2(nn.Cell):
                         "zeros", cell.bias.shape, cell.bias.dtype))
 
     def forward_features(self, x: Tensor) -> Tensor:
+        '''特征计算'''
         x = self.patch_embed(x)
         x = self.pos_drop(x)
         for layer in self.layers:
@@ -682,16 +716,19 @@ class SwinTransformerV2(nn.Cell):
         return x
 
     def forward_head(self, x: Tensor) -> Tensor:
+        '''模型前部'''
         x = self.head(x)
         return x
 
     def construct(self, x: Tensor) -> Tensor:
+        '''SwinTransformerV2 construct'''
         x = self.forward_features(x)
         x = self.forward_head(x)
         return x
 
 
 def swinv2_tiny_window8(num_classes: int = 1000, in_channels=3, **kwargs):
+    '''返回特定模型'''
     model = SwinTransformerV2(in_channels=in_channels, num_classes=num_classes,
                               window_size=8, embed_dim=96, depths=[2, 2, 6, 2],
                               num_heads=[3, 6, 12, 24], **kwargs)
@@ -700,6 +737,7 @@ def swinv2_tiny_window8(num_classes: int = 1000, in_channels=3, **kwargs):
 
 
 def swinv2_tiny_window16(num_classes: int = 1000, in_channels=3, **kwargs):
+    '''返回特定模型'''
     model = SwinTransformerV2(in_channels=in_channels, num_classes=num_classes,
                               window_size=16, embed_dim=96, depths=[2, 2, 6, 2],
                               num_heads=[3, 6, 12, 24], **kwargs)
@@ -708,6 +746,7 @@ def swinv2_tiny_window16(num_classes: int = 1000, in_channels=3, **kwargs):
 
 
 def swinv2_small_window8(num_classes: int = 1000, in_channels=3, **kwargs):
+    '''返回特定模型'''
     model = SwinTransformerV2(in_channels=in_channels, num_classes=num_classes,
                               window_size=8, embed_dim=96, depths=[2, 2, 18, 2],
                               num_heads=[3, 6, 12, 24], **kwargs)
@@ -716,6 +755,7 @@ def swinv2_small_window8(num_classes: int = 1000, in_channels=3, **kwargs):
 
 
 def swinv2_small_window16(num_classes: int = 1000, in_channels=3, **kwargs):
+    '''返回特定模型'''
     model = SwinTransformerV2(in_channels=in_channels, num_classes=num_classes,
                               window_size=16, embed_dim=96, depths=[2, 2, 18, 2],
                               num_heads=[3, 6, 12, 24], **kwargs)
@@ -724,6 +764,7 @@ def swinv2_small_window16(num_classes: int = 1000, in_channels=3, **kwargs):
 
 
 def swinv2_base_window8(num_classes: int = 1000, in_channels=3, **kwargs):
+    '''返回特定模型'''
     model = SwinTransformerV2(in_channels=in_channels, num_classes=num_classes,
                               window_size=8, embed_dim=128, depths=[2, 2, 18, 2],
                               num_heads=[4, 8, 16, 32], **kwargs)
@@ -732,6 +773,7 @@ def swinv2_base_window8(num_classes: int = 1000, in_channels=3, **kwargs):
 
 
 def swinv2_base_window7(num_classes: int = 1000, in_channels=3, **kwargs):
+    '''返回特定模型'''
     model = SwinTransformerV2(in_channels=in_channels, num_classes=num_classes,
                               window_size=7, embed_dim=128, depths=[2, 2, 18, 2],
                               num_heads=[4, 8, 16, 32], **kwargs)
@@ -740,6 +782,7 @@ def swinv2_base_window7(num_classes: int = 1000, in_channels=3, **kwargs):
 
 
 def swinv2_base_window16(num_classes: int = 1000, in_channels=3, **kwargs):
+    '''返回特定模型'''
     model = SwinTransformerV2(in_channels=in_channels, num_classes=num_classes,
                               window_size=16, embed_dim=128, depths=[2, 2, 18, 2],
                               num_heads=[4, 8, 16, 32], **kwargs)

@@ -1,4 +1,5 @@
 '''CNN模型'''
+# pylint:disable=E0401, W0611
 import os
 import numpy as np
 import mindspore
