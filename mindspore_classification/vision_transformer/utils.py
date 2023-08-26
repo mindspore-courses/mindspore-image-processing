@@ -1,5 +1,3 @@
-'''工具类'''
-# pylint:disable=E0401
 import os
 import sys
 import json
@@ -13,10 +11,9 @@ import matplotlib.pyplot as plt
 
 
 def read_split_data(root: str, val_rate: float = 0.2):
-    '''数据分割'''
     random.seed(0)  # 保证随机结果可复现
     assert os.path.exists(
-        root), f"dataset root: {root} does not exist."
+        root), "dataset root: {} does not exist.".format(root)
 
     # 遍历文件夹，一个文件夹对应一个类别
     flower_class = [cla for cla in os.listdir(
@@ -27,7 +24,7 @@ def read_split_data(root: str, val_rate: float = 0.2):
     class_indices = dict((k, v) for v, k in enumerate(flower_class))
     json_str = json.dumps(dict((val, key)
                           for key, val in class_indices.items()), indent=4)
-    with open('class_indices.json', 'w', encoding='utf-8') as json_file:
+    with open('class_indices.json', 'w') as json_file:
         json_file.write(json_str)
 
     train_images_path = []  # 存储训练集的所有图片路径
@@ -59,9 +56,9 @@ def read_split_data(root: str, val_rate: float = 0.2):
                 train_images_path.append(img_path)
                 train_images_label.append(image_class)
 
-    print(f"{sum(every_class_num)} images were found in the dataset.")
-    print(f"{len(train_images_path)} images for training.")
-    print(f"{len(val_images_path)} images for validation.")
+    print("{} images were found in the dataset.".format(sum(every_class_num)))
+    print("{} images for training.".format(len(train_images_path)))
+    print("{} images for validation.".format(len(val_images_path)))
     assert len(
         train_images_path) > 0, "number of training images must greater than 0."
     assert len(
@@ -88,13 +85,12 @@ def read_split_data(root: str, val_rate: float = 0.2):
 
 
 def plot_data_loader_image(data_loader):
-    '''绘图'''
     batch_size = data_loader.batch_size
     plot_num = min(batch_size, 4)
 
     json_path = './class_indices.json'
     assert os.path.exists(json_path), json_path + " does not exist."
-    json_file = open(json_path, 'r', encoding='utf-8')
+    json_file = open(json_path, 'r')
     class_indices = json.load(json_file)
 
     for data in data_loader:
@@ -114,14 +110,12 @@ def plot_data_loader_image(data_loader):
 
 
 def write_pickle(list_info: list, file_name: str):
-    '''写入'''
-    with open(file_name, 'wb', encoding='utf-8') as f:
+    with open(file_name, 'wb') as f:
         pickle.dump(list_info, f)
 
 
 def read_pickle(file_name: str) -> list:
-    '''读取'''
-    with open(file_name, 'rb', encoding='utf-8') as f:
+    with open(file_name, 'rb') as f:
         info_list = pickle.load(f)
         return info_list
 
@@ -129,14 +123,15 @@ def read_pickle(file_name: str) -> list:
 def train_one_epoch(model, optimizer, data_loader, epoch):
     '''训练'''
     model.set_train(True)
-    criterion = mindspore.nn.CrossEntropyLoss()
+    loss_function = mindspore.nn.CrossEntropyLoss()
     accu_loss = mindspore.ops.zeros(1)  # 累计损失
     accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
 
     # 前向传播
+
     def forward_fn(data, label):
         logits = model(data)
-        loss = criterion(logits, label)
+        loss = loss_function(logits, label)
         return loss, logits
 
     # 梯度函数
@@ -151,7 +146,6 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
 
     sample_num = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
-    step = 0
     for step, data in enumerate(data_loader):
         images, labels = data
         sample_num += images.shape[0]
@@ -162,12 +156,9 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
 
         accu_loss += loss.detach()
 
-        data_loader.desc = "[train epoch {}] loss: {:.3f}, acc: {:.3f}, lr: {:.5f}".format(
-            epoch,
-            accu_loss.item() / (step + 1),
-            accu_num.item() / sample_num,
-            optimizer.learning_rate.data.asnumpy()
-        )
+        data_loader.desc = "[train epoch {}] loss: {:.3f}, acc: {:.3f}".format(epoch,
+                                                                               accu_loss.item() / (step + 1),
+                                                                               accu_num.item() / sample_num)
 
     return accu_loss.item() / (step + 1), accu_num.item() / sample_num
 
@@ -177,12 +168,12 @@ def evaluate(model, data_loader, epoch):
     loss_function = mindspore.nn.CrossEntropyLoss()
 
     model.set_train(False)
+
     accu_loss = mindspore.ops.zeros(1)  # 累计损失
     accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
 
     sample_num = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
-    step = 0
     for step, data in enumerate(data_loader):
         images, labels = data
         sample_num += images.shape[0]
@@ -194,36 +185,8 @@ def evaluate(model, data_loader, epoch):
         loss = loss_function(pred, labels)
         accu_loss += loss
 
-        data_loader.desc = "[valid epoch {}] loss: {:.3f}, acc: {:.3f}".format(
-            epoch,
-            accu_loss.item() / (step + 1),
-            accu_num.item() / sample_num
-        )
+        data_loader.desc = "[valid epoch {}] loss: {:.3f}, acc: {:.3f}".format(epoch,
+                                                                               accu_loss.item() / (step + 1),
+                                                                               accu_num.item() / sample_num)
 
     return accu_loss.item() / (step + 1), accu_num.item() / sample_num
-
-
-def get_params_groups(model, weight_decay=1e-5):
-    '''获取参数列表'''
-    # 记录optimize要训练的权重参数
-    parameter_group_vars = {"decay": {"params": [], "weight_decay": weight_decay},
-                            "no_decay": {"params": [], "weight_decay": 0.}}
-
-    # 记录对应的权重名称
-    parameter_group_names = {"decay": {"params": [], "weight_decay": weight_decay},
-                             "no_decay": {"params": [], "weight_decay": 0.}}
-
-    for name, param in model.get_parameters():
-        if not param.requires_grad:
-            continue  # frozen weights
-
-        if len(param.shape) == 1 or name.endswith(".bias"):
-            group_name = "no_decay"
-        else:
-            group_name = "decay"
-
-        parameter_group_vars[group_name]["params"].append(param)
-        parameter_group_names[group_name]["params"].append(name)
-
-    print("Param groups = %s" % json.dumps(parameter_group_names, indent=2))
-    return list(parameter_group_vars.values())

@@ -1,12 +1,13 @@
 import os
 import math
 import numpy as np
-# import torch
+import mindspore
+import mindspore.dataset as ds
 from PIL import Image
 import matplotlib.pyplot as plt
 # from torchvision import transforms
 from utils import GradCAM, show_cam_on_image, center_crop_img
-from swin_model import swin_base_patch4_window7_224
+from swin_model import swinv2_base_window7
 
 
 class ResizeTransform:
@@ -42,20 +43,20 @@ def main():
     img_size = 224
     assert img_size % 32 == 0
 
-    model = swin_base_patch4_window7_224()
-    # https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window7_224.pth
-    weights_path = "./swin_base_patch4_window7_224.pth"
-    model.load_state_dict(torch.load(weights_path, map_location="cpu")[
-                          "model"], strict=False)
+    model = swinv2_base_window7()
+    weights_path = "./swinv2_base_window7.ckpt"
+    param_dict = mindspore.load_checkpoint(weights_path)
+    # 将参数加载到网络中
+    mindspore.load_param_into_net(model, param_dict)
 
     target_layers = [model.norm]
 
-    data_transform = transforms.Compose([transforms.ToTensor(),
-                                         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+    data_transform = ds.transforms.Compose([ds.vision.ToTensor(),
+                                            ds.vision.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
     # load image
     img_path = "both.png"
     assert os.path.exists(
-        img_path), "file: '{}' dose not exist.".format(img_path)
+        img_path), f"file: '{img_path}' dose not exist."
     img = Image.open(img_path).convert('RGB')
     img = np.array(img, dtype=np.uint8)
     img = center_crop_img(img, img_size)
@@ -64,9 +65,9 @@ def main():
     img_tensor = data_transform(img)
     # expand batch dimension
     # [C, H, W] -> [N, C, H, W]
-    input_tensor = torch.unsqueeze(img_tensor, dim=0)
+    input_tensor = mindspore.ops.unsqueeze(img_tensor, dim=0)
 
-    cam = GradCAM(model=model, target_layers=target_layers, use_cuda=False,
+    cam = GradCAM(model=model, target_layers=target_layers,
                   reshape_transform=ResizeTransform(im_h=img_size, im_w=img_size))
     target_category = 281  # tabby, tabby cat
     # target_category = 254  # pug, pug-dog

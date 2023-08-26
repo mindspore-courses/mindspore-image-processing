@@ -1,16 +1,18 @@
 import os
 import numpy as np
-import torch
+import mindspore
+import mindspore.dataset as ds
 from PIL import Image
 import matplotlib.pyplot as plt
-from torchvision import transforms
 from utils import GradCAM, show_cam_on_image, center_crop_img
-from vit_model import vit_base_patch16_224
+from vit_model import vit_b_16_384
 
 
 class ReshapeTransform:
+    '''图像处理'''
+
     def __init__(self, model):
-        input_size = model.patch_embed.img_size
+        input_size = model.patch_embed.image_size
         patch_size = model.patch_embed.patch_size
         self.h = input_size[0] // patch_size[0]
         self.w = input_size[1] // patch_size[1]
@@ -31,22 +33,23 @@ class ReshapeTransform:
 
 
 def main():
-    model = vit_base_patch16_224()
-    # 链接: https://pan.baidu.com/s/1zqb08naP0RPqqfSXfkB2EA  密码: eu9f
-    weights_path = "./vit_base_patch16_224.pth"
-    model.load_state_dict(torch.load(weights_path, map_location="cpu"))
+    model = vit_b_16_384()
+    weights_path = "./vit_base_patch16_224.ckpt"
+    param_dict = mindspore.load_checkpoint(weights_path)
+    # 将参数加载到网络中
+    mindspore.load_param_into_net(model, param_dict)
     # Since the final classification is done on the class token computed in the last attention block,
     # the output will not be affected by the 14x14 channels in the last layer.
     # The gradient of the output with respect to them, will be 0!
     # We should chose any layer before the final attention block.
-    target_layers = [model.blocks[-1].norm1]
+    target_layers = [model.backbone.transformer.norm1s[-1]]
 
-    data_transform = transforms.Compose([transforms.ToTensor(),
-                                         transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
+    data_transform = ds.transforms.Compose([ds.vision.ToTensor(),
+                                            ds.vision.transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])])
     # load image
     img_path = "both.png"
     assert os.path.exists(
-        img_path), "file: '{}' dose not exist.".format(img_path)
+        img_path), f"file: '{img_path}' dose not exist."
     img = Image.open(img_path).convert('RGB')
     img = np.array(img, dtype=np.uint8)
     img = center_crop_img(img, 224)
@@ -54,11 +57,10 @@ def main():
     img_tensor = data_transform(img)
     # expand batch dimension
     # [C, H, W] -> [N, C, H, W]
-    input_tensor = torch.unsqueeze(img_tensor, dim=0)
+    input_tensor = mindspore.ops.unsqueeze(img_tensor, dim=0)
 
     cam = GradCAM(model=model,
                   target_layers=target_layers,
-                  use_cuda=False,
                   reshape_transform=ReshapeTransform(model))
     target_category = 281  # tabby, tabby cat
     # target_category = 254  # pug, pug-dog
