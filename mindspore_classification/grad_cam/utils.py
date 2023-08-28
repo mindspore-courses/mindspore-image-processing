@@ -1,5 +1,5 @@
 '''工具类'''
-# pylint:disable=W0622, W0613
+# pylint: disable = W0622, W0613, E1136
 import cv2
 import numpy as np
 

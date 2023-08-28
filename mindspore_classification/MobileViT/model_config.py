@@ -1,4 +1,8 @@
+'''模型配置'''
+
+
 def get_config(mode: str = "xxs") -> dict:
+    '''返回配置信息'''
     if mode == "xx_small":
         mv2_exp_mult = 2
         config = {

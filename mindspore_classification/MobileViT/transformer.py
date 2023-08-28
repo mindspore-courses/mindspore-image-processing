@@ -1,5 +1,5 @@
 '''数据变换'''
-# pylint : disable = W0613s
+# pylint : disable = W0613, C0301
 from typing import Optional
 
 import mindspore
@@ -27,11 +27,11 @@ class MultiHeadAttention(nn.Cell):
 
     def __init__(
         self,
+        *args,
         embed_dim: int,
         num_heads: int,
         attn_dropout: float = 0.0,
         bias: bool = True,
-        *args,
         **kwargs
     ) -> None:
         super().__init__()
@@ -109,13 +109,13 @@ class TransformerEncoder(nn.Cell):
 
     def __init__(
         self,
+        *args,
         embed_dim: int,
         ffn_latent_dim: int,
         num_heads: Optional[int] = 8,
         attn_dropout: Optional[float] = 0.0,
         dropout: Optional[float] = 0.0,
         ffn_dropout: Optional[float] = 0.0,
-        *args,
         **kwargs
     ) -> None:
 

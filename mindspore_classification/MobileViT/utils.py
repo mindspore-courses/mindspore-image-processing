@@ -1,4 +1,5 @@
 '''工具类'''
+# pylint: disable = E0104
 import os
 import sys
 import json

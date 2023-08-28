@@ -1,7 +1,7 @@
 """
 SwinTransformer
 """
-# pylint : disable = W0102
+# pylint: disable = W0102
 from typing import List, Optional, Tuple, Union
 
 from itertools import repeat

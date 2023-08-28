@@ -226,6 +226,7 @@ class MobileViTBlock(nn.Cell):
 
     def __init__(
         self,
+        *args,
         in_channels: int,
         transformer_dim: int,
         ffn_dim: int,
@@ -237,7 +238,6 @@ class MobileViTBlock(nn.Cell):
         patch_h: int = 8,
         patch_w: int = 8,
         conv_ksize: Optional[int] = 3,
-        *args,
         **kwargs
     ) -> None:
         super().__init__()
