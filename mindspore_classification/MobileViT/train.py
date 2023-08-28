@@ -1,5 +1,3 @@
-'''模型训练'''
-# pylint:disable=E0401
 import os
 import argparse
 import math
@@ -8,10 +6,9 @@ import mindspore
 import mindspore.dataset as ds
 from mindspore.train.summary import SummaryRecord
 
-
 from my_dataset import MyDataSet
-from model import convnext_tiny as create_model
-from utils import read_split_data, get_params_groups, train_one_epoch, evaluate
+from model import mobile_vit_xx_small as create_model
+from utils import read_split_data, train_one_epoch, evaluate
 
 
 def main(args):
@@ -48,7 +45,7 @@ def main(args):
     batch_size = args.batch_size
     # number of workers
     nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
-    print(f'Using {nw} dataloader workers every process')
+    print('Using {} dataloader workers every process'.format(nw))
     train_loader = ds.GeneratorDataset(
         train_dataset, ["data", "label"], num_parallel_workers=nw, shuffle=True)
     train_loader = train_loader.batch(
@@ -79,27 +76,8 @@ def main(args):
             else:
                 print(f"training {name}")
 
-    # pg = [p for p in model.parameters() if p.requires_grad]
-    pg = get_params_groups(model, weight_decay=args.wd)
-
-    # 动态学习率
-    class MyLR(mindspore.nn.LearningRateSchedule):
-        '''自定义动态学习率'''
-
-        def __init__(self, lr, lrf, epochs):
-            super().__init__()
-            self.lr = lr
-            self.lrf = lrf
-            self.epochs = epochs
-
-        def construct(self, global_step):
-            '''学习率计算'''
-            return ((1 + math.cos(global_step * math.pi / self.epochs)) / 2) * \
-                (1 - self.lrf) + self.lrf + self.lr  # cosine
-
-    lr = MyLR(args.lr, args.lrf, args.epochs)
-    optimizer = mindspore.nn.AdamWeightDecay(
-        pg, learning_rate=lr, weight_decay=args.wd)
+    pg = [p for p in model.get_parameters() if p.requires_grad]
+    optimizer = mindspore.nn.AdamW(pg, lr=args.lr, weight_decay=1E-2)
 
     best_acc = 0.
     with SummaryRecord(log_dir="./summary_dir", network=model) as summary_record:
@@ -116,7 +94,7 @@ def main(args):
                                          epoch=epoch)
 
             tags = ["train_loss", "train_acc",
-                    "val_loss", "val_acc", "lr"]
+                    "val_loss", "val_acc", "learning_rate"]
             summary_record.add_value('scalar', tags[0], train_loss)
             summary_record.add_value('scalar', tags[1], train_acc)
             summary_record.add_value('scalar', tags[2], val_loss)
@@ -128,14 +106,15 @@ def main(args):
                 mindspore.save_checkpoint(model, "./weights/best_model.ckpt")
                 best_acc = val_acc
 
+            mindspore.save_checkpoint(model, "./weights/latest_model.pth")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_classes', type=int, default=5)
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--batch-size', type=int, default=8)
-    parser.add_argument('--lr', type=float, default=5e-4)
-    parser.add_argument('--wd', type=float, default=5e-2)
+    parser.add_argument('--lr', type=float, default=0.0002)
 
     # 数据集所在根目录
     # https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz
@@ -143,9 +122,9 @@ if __name__ == '__main__':
                         default="/data/flower_photos")
 
     # 预训练权重路径，如果不想载入就设置为空字符
-    parser.add_argument('--weights', type=str, default='./convnext_tiny_1k_224_ema.ckpt',
+    parser.add_argument('--weights', type=str, default='./mobilevit_xxs.ckpt',
                         help='initial weights path')
-    # 是否冻结head以外所有权重
+    # 是否冻结权重
     parser.add_argument('--freeze-layers', type=bool, default=False)
     parser.add_argument('--device', default='cuda:0',
                         help='device id (i.e. 0 or 0,1 or cpu)')
