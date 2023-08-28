@@ -1,3 +1,5 @@
+'''模型预测'''
+# pylint:disable = E0401
 import os
 import json
 
@@ -23,7 +25,7 @@ def main():
     # load image
     img_path = "../tulip.jpg"
     assert os.path.exists(
-        img_path), "file: '{}' dose not exist.".format(img_path)
+        img_path), f"file: '{img_path}' dose not exist."
     img = Image.open(img_path)
     plt.imshow(img)
     # [N, C, H, W]
@@ -34,9 +36,9 @@ def main():
     # read class_indict
     json_path = './class_indices.json'
     assert os.path.exists(
-        json_path), "file: '{}' dose not exist.".format(json_path)
+        json_path), f"file: '{json_path}' dose not exist."
 
-    with open(json_path, "r") as f:
+    with open(json_path, "r", encoding='utf-8') as f:
         class_indict = json.load(f)
 
     # create model

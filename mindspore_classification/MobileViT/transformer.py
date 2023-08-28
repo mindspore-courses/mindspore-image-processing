@@ -1,3 +1,5 @@
+'''数据变换'''
+# pylint : disable = W0613s
 from typing import Optional
 
 import mindspore
@@ -35,10 +37,7 @@ class MultiHeadAttention(nn.Cell):
         super().__init__()
         if embed_dim % num_heads != 0:
             raise ValueError(
-                "Embedding dim must be divisible by number of heads in {}. Got: embed_dim={} and num_heads={}".format(
-                    self.__class__.__name__, embed_dim, num_heads
-                )
-            )
+                f"Embedding dim must be divisible by number of heads in {self.__class__.__name__}. Got: embed_dim={embed_dim} and num_heads={num_heads}")
 
         self.qkv_proj = nn.Dense(
             in_channels=embed_dim, out_channels=3 * embed_dim, has_bias=bias)
@@ -53,9 +52,10 @@ class MultiHeadAttention(nn.Cell):
         self.num_heads = num_heads
         self.embed_dim = embed_dim
 
-    def forward(self, x_q: Tensor) -> Tensor:
+    def construct(self, x_q: Tensor) -> Tensor:
+        '''MultiHeadAttention construct'''
         # [N, P, C]
-        b_sz, n_patches, in_channels = x_q.shape
+        b_sz, n_patches, _ = x_q.shape
 
         # self-attention
         # [N, P, C] -> [N, P, 3C] -> [N, P, 3, h, c] where C = hc
@@ -150,6 +150,7 @@ class TransformerEncoder(nn.Cell):
         self.std_dropout = dropout
 
     def construct(self, x: Tensor) -> Tensor:
+        '''TransformerEncoder construct'''
         # multi-head attention
         res = x
         x = self.pre_norm_mha(x)

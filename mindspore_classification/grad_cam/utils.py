@@ -1,5 +1,5 @@
 '''工具类'''
-# pylint:disable=W0622
+# pylint:disable=W0622, W0613
 import cv2
 import numpy as np
 
@@ -44,11 +44,14 @@ class ActivationsAndGradients:
         return self.model(x)
 
     def release(self):
+        '''释放资源'''
         for handle in self.handles:
             handle.remove()
 
 
 class GradCAM:
+    '''网格计算'''
+
     def __init__(self,
                  model,
                  target_layers,
@@ -60,22 +63,23 @@ class GradCAM:
         self.activations_and_grads = ActivationsAndGradients(
             self.model, target_layers, reshape_transform)
 
-    """ Get a vector of weights for every channel in the target layer.
-        Methods that return weights channels,
-        will typically need to only implement this function. """
-
     @staticmethod
     def get_cam_weights(grads):
+        """ Get a vector of weights for every channel in the target layer.
+        Methods that return weights channels,
+        will typically need to only implement this function. """
         return np.mean(grads, axis=(2, 3), keepdims=True)
 
     @staticmethod
     def get_loss(output, target_category):
+        '''返回损失值'''
         loss = 0
-        for i in range(len(target_category)):
+        for i, _ in enumerate(target_category):
             loss = loss + output[i, target_category[i]]
         return loss
 
     def get_cam_image(self, activations, grads):
+        '''返回图像'''
         weights = self.get_cam_weights(grads)
         weighted_activations = weights * activations
         cam = weighted_activations.sum(axis=1)
@@ -84,10 +88,12 @@ class GradCAM:
 
     @staticmethod
     def get_target_width_height(input_tensor):
+        '''返回图像宽高'''
         width, height = input_tensor.size(-1), input_tensor.size(-2)
         return width, height
 
     def compute_cam_per_layer(self, input_tensor):
+        '''计算模型每一层'''
         activations_list = [a.data.asnumpy()
                             for a in self.activations_and_grads.activations]
         grads_list = [g.data.asnumpy()
@@ -101,12 +107,13 @@ class GradCAM:
             cam = self.get_cam_image(layer_activations, layer_grads)
             # works like mute the min-max scale in the function of scale_cam_image
             cam[cam < 0] = 0
-            scaled = self.scale_cam_image(cam, target_size)
-            cam_per_target_layer.append(scaled[:, None, :])
+            s_scaled = self.scale_cam_image(cam, target_size)
+            cam_per_target_layer.append(s_scaled[:, None, :])
 
         return cam_per_target_layer
 
     def aggregate_multi_layers(self, cam_per_target_layer):
+        '''分析层'''
         cam_per_target_layer = np.concatenate(cam_per_target_layer, axis=1)
         cam_per_target_layer = np.maximum(cam_per_target_layer, 0)
         result = np.mean(cam_per_target_layer, axis=1)
@@ -114,6 +121,7 @@ class GradCAM:
 
     @staticmethod
     def scale_cam_image(cam, target_size=None):
+        '''图像变换'''
         result = []
         for img in cam:
             img = img - np.min(img)
@@ -138,7 +146,7 @@ class GradCAM:
         else:
             assert len(target_category) == input_tensor.size(0)
 
-        loss = self.get_loss(output, target_category)
+        _ = self.get_loss(output, target_category)
 
         # In most of the saliency attribution papers, the saliency is
         # computed with a single target layer.
@@ -165,6 +173,7 @@ class GradCAM:
             print(
                 f"An exception occurred in CAM with block: {exc_type}. Message: {exc_value}")
             return True
+        return False
 
 
 def show_cam_on_image(img: np.ndarray,
@@ -197,7 +206,7 @@ def show_cam_on_image(img: np.ndarray,
 
 def center_crop_img(img: np.ndarray, size: int):
     '''裁剪图像'''
-    h, w, c = img.shape
+    h, w, _ = img.shape
 
     if w == h == size:
         return img

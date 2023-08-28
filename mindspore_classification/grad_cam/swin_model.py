@@ -1,7 +1,7 @@
 """
 SwinTransformer
 """
-
+# pylint : disable = W0102
 from typing import List, Optional, Tuple, Union
 
 from itertools import repeat
@@ -30,7 +30,7 @@ class Roll(nn.Cell):
     '''Roll模块'''
 
     def __init__(self, shift_size: int, shift_axis: Tuple[int, int] = (1, 2)) -> None:
-        super(Roll, self).__init__()
+        super().__init__()
         self.shift_size = to_2tuple(shift_size)
         self.shift_axis = shift_axis
 
@@ -218,8 +218,8 @@ class WindowCosineAttention(nn.Cell):
             (ops.log(10 * ops.ones((num_heads, 1, 1), mstype.float32))))
         self.logit_scale = Parameter(logit_scale, requires_grad=True)
 
-        max = Tensor(100, mstype.float32)
-        self.value_max = ops.log(max)
+        t_max = Tensor(100, mstype.float32)
+        self.value_max = ops.log(t_max)
         self.value_min = Tensor((-1000), mstype.float32)
 
         self.q = nn.Dense(in_channels=dim, out_channels=dim, has_bias=qkv_bias)
@@ -649,7 +649,7 @@ class SwinTransformerV2(nn.Cell):
 
         # stochastic depth
         # stochastic depth decay rule
-        dpr = [x for x in np.linspace(0, drop_path_rate, sum(depths))]
+        dpr = list(x for x in np.linspace(0, drop_path_rate, sum(depths)))
 
         # build layers
         self.layers = nn.CellList()

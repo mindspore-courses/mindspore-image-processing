@@ -1,6 +1,7 @@
+'''模型训练'''
+# pylint:disable = E0401
 import os
 import argparse
-import math
 
 import mindspore
 import mindspore.dataset as ds
@@ -45,7 +46,7 @@ def main(args):
     batch_size = args.batch_size
     # number of workers
     nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
-    print('Using {} dataloader workers every process'.format(nw))
+    print(f'Using {nw} dataloader workers every process')
     train_loader = ds.GeneratorDataset(
         train_dataset, ["data", "label"], num_parallel_workers=nw, shuffle=True)
     train_loader = train_loader.batch(

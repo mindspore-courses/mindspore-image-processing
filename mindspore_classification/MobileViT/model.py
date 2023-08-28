@@ -2,7 +2,7 @@
 original code from apple:
 https://github.com/apple/ml-cvnets/blob/main/cvnets/models/classification/mobilevit.py
 """
-
+# pylint:disable=E0401, W0613
 from typing import Optional, Tuple, Union, Dict
 import math
 import numpy as np
@@ -115,6 +115,7 @@ class ConvLayer(nn.Cell):
         self.block = block
 
     def consturct(self, x: Tensor) -> Tensor:
+        '''ConvLayer construct'''
         return self.block(x)
 
 
@@ -194,10 +195,12 @@ class InvertedResidual(nn.Cell):
         )
 
     def consturct(self, x: Tensor, *args, **kwargs) -> Tensor:
+        '''InvertedResidual construct'''
         if self.use_res_connect:
-            return x + self.block(x)
+            x = x + self.block(x)
         else:
-            return self.block(x)
+            x = self.block(x)
+        return x
 
 
 class MobileViTBlock(nn.Cell):
@@ -308,6 +311,7 @@ class MobileViTBlock(nn.Cell):
         self.conv_ksize = conv_ksize
 
     def unfolding(self, x: Tensor) -> Tuple[Tensor, Dict]:
+        '''展开'''
         patch_w, patch_h = self.patch_w, self.patch_h
         patch_area = patch_w * patch_h
         batch_size, in_channels, orig_h, orig_w = x.shape
@@ -351,16 +355,17 @@ class MobileViTBlock(nn.Cell):
         return x, info_dict
 
     def folding(self, x: Tensor, info_dict: Dict) -> Tensor:
+        '''压缩'''
         n_dim = x.dim()
         assert n_dim == 3, "Tensor should be of shape BPxNxC. Got: {}".format(
             x.shape
         )
         # [BP, N, C] --> [B, P, N, C]
-        x = x.contiguous().view(
+        x = x.view(
             info_dict["batch_size"], self.patch_area, info_dict["total_patches"], -1
         )
 
-        batch_size, pixels, num_patches, channels = x.size()
+        batch_size, _, _, channels = x.size()
         num_patch_h = info_dict["num_patches_h"]
         num_patch_w = info_dict["num_patches_w"]
 
@@ -384,6 +389,7 @@ class MobileViTBlock(nn.Cell):
         return x
 
     def consturct(self, x: Tensor) -> Tensor:
+        '''MobileViTBlock construct'''
         res = x
 
         fm = self.local_rep(x)
@@ -458,9 +464,11 @@ class MobileViT(nn.Cell):
     def _make_layer(self, input_channel, cfg: Dict) -> Tuple[nn.SequentialCell, int]:
         block_type = cfg.get("block_type", "mobilevit")
         if block_type.lower() == "mobilevit":
-            return self._make_mit_layer(input_channel=input_channel, cfg=cfg)
+            b = self._make_mit_layer(input_channel=input_channel, cfg=cfg)
         else:
-            return self._make_mobilenet_layer(input_channel=input_channel, cfg=cfg)
+            b = self._make_mobilenet_layer(
+                input_channel=input_channel, cfg=cfg)
+        return b
 
     @staticmethod
     def _make_mobilenet_layer(input_channel: int, cfg: Dict) -> Tuple[nn.SequentialCell, int]:
@@ -526,6 +534,7 @@ class MobileViT(nn.Cell):
 
     @staticmethod
     def init_parameters(m):
+        '''参数初始化'''
         if isinstance(m, nn.Conv2d):
             if m.weight is not None:
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
@@ -553,6 +562,7 @@ class MobileViT(nn.Cell):
             pass
 
     def consturct(self, x: Tensor) -> Tensor:
+        '''MobileViT construct'''
         x = self.conv_1(x)
         x = self.layer_1(x)
         x = self.layer_2(x)
@@ -566,6 +576,7 @@ class MobileViT(nn.Cell):
 
 
 def mobile_vit_xx_small(num_classes: int = 1000):
+    '''返回特定模型'''
     # pretrain weight link
     # https://docs-assets.developer.apple.com/ml-research/models/cvnets/classification/mobilevit_xxs.pt
     config = get_config("xx_small")
@@ -574,6 +585,7 @@ def mobile_vit_xx_small(num_classes: int = 1000):
 
 
 def mobile_vit_x_small(num_classes: int = 1000):
+    '''返回特定模型'''
     # pretrain weight link
     # https://docs-assets.developer.apple.com/ml-research/models/cvnets/classification/mobilevit_xs.pt
     config = get_config("x_small")
@@ -582,6 +594,7 @@ def mobile_vit_x_small(num_classes: int = 1000):
 
 
 def mobile_vit_small(num_classes: int = 1000):
+    '''返回特定模型'''
     # pretrain weight link
     # https://docs-assets.developer.apple.com/ml-research/models/cvnets/classification/mobilevit_s.pt
     config = get_config("small")

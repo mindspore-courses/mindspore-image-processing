@@ -1,3 +1,4 @@
+'''展开测试'''
 import time
 import mindspore
 
@@ -12,6 +13,7 @@ patch_area = patch_h * patch_w
 
 
 def official(x: mindspore.Tensor):
+    '''官方代码'''
     # [B, C, H, W] -> [B * C * n_h, p_h, n_w, p_w]
     x = x.reshape(batch_size * in_channels * num_patch_h,
                   patch_h, num_patch_w, patch_w)
@@ -28,6 +30,7 @@ def official(x: mindspore.Tensor):
 
 
 def my_self(x: mindspore.Tensor):
+    '''自实现'''
     # [B, C, H, W] -> [B, C, n_h, p_h, n_w, p_w]
     x = x.reshape(batch_size, in_channels, num_patch_h,
                   patch_h, num_patch_w, patch_w)
@@ -45,7 +48,7 @@ def my_self(x: mindspore.Tensor):
 
 if __name__ == '__main__':
     t = mindspore.ops.randn(batch_size, in_channels, num_patch_h *
-                    patch_h, num_patch_w * patch_w)
+                            patch_h, num_patch_w * patch_w)
     print(mindspore.ops.equal(official(t), my_self(t)))
 
     t1 = time.time()

@@ -1,3 +1,4 @@
+'''工具类'''
 import os
 import sys
 import json
@@ -11,9 +12,10 @@ import matplotlib.pyplot as plt
 
 
 def read_split_data(root: str, val_rate: float = 0.2):
+    '''数据分割'''
     random.seed(0)  # 保证随机结果可复现
     assert os.path.exists(
-        root), "dataset root: {} does not exist.".format(root)
+        root), f"dataset root: {root} does not exist."
 
     # 遍历文件夹，一个文件夹对应一个类别
     flower_class = [cla for cla in os.listdir(
@@ -24,7 +26,7 @@ def read_split_data(root: str, val_rate: float = 0.2):
     class_indices = dict((k, v) for v, k in enumerate(flower_class))
     json_str = json.dumps(dict((val, key)
                           for key, val in class_indices.items()), indent=4)
-    with open('class_indices.json', 'w') as json_file:
+    with open('class_indices.json', 'w', encoding='utf-8') as json_file:
         json_file.write(json_str)
 
     train_images_path = []  # 存储训练集的所有图片路径
@@ -56,9 +58,9 @@ def read_split_data(root: str, val_rate: float = 0.2):
                 train_images_path.append(img_path)
                 train_images_label.append(image_class)
 
-    print("{} images were found in the dataset.".format(sum(every_class_num)))
-    print("{} images for training.".format(len(train_images_path)))
-    print("{} images for validation.".format(len(val_images_path)))
+    print(f"{sum(every_class_num)} images were found in the dataset.")
+    print(f"{len(train_images_path)} images for training.")
+    print(f"{len(val_images_path)} images for validation.")
     assert len(
         train_images_path) > 0, "number of training images must greater than 0."
     assert len(
@@ -85,12 +87,13 @@ def read_split_data(root: str, val_rate: float = 0.2):
 
 
 def plot_data_loader_image(data_loader):
+    '''图像绘制'''
     batch_size = data_loader.batch_size
     plot_num = min(batch_size, 4)
 
     json_path = './class_indices.json'
     assert os.path.exists(json_path), json_path + " does not exist."
-    json_file = open(json_path, 'r')
+    json_file = open(json_path, 'r', encoding='utf-8')
     class_indices = json.load(json_file)
 
     for data in data_loader:
@@ -110,17 +113,19 @@ def plot_data_loader_image(data_loader):
 
 
 def write_pickle(list_info: list, file_name: str):
-    with open(file_name, 'wb') as f:
+    '''写'''
+    with open(file_name, 'wb', encoding='utf-8') as f:
         pickle.dump(list_info, f)
 
 
 def read_pickle(file_name: str) -> list:
-    with open(file_name, 'rb') as f:
+    '''读'''
+    with open(file_name, 'rb', encoding='utf-8') as f:
         info_list = pickle.load(f)
         return info_list
 
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch):
+def train_one_epoch(model, optimizer, data_loader, epoch):
     '''训练'''
     model.set_train(True)
     criterion = mindspore.nn.CrossEntropyLoss()
@@ -166,7 +171,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch):
     return accu_loss.item() / (step + 1), accu_num.item() / sample_num
 
 
-def evaluate(model, data_loader, device, epoch):
+def evaluate(model, data_loader, epoch):
     '''验证'''
     loss_function = mindspore.nn.CrossEntropyLoss()
 
