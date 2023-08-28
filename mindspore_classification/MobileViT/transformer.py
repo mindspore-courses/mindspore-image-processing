@@ -1,5 +1,5 @@
 '''数据变换'''
-# pylint : disable = W0613, C0301
+# pylint: disable = W0613, C0301
 from typing import Optional
 
 import mindspore
@@ -122,8 +122,8 @@ class TransformerEncoder(nn.Cell):
         super().__init__()
 
         attn_unit = MultiHeadAttention(
-            embed_dim,
-            num_heads,
+            embed_dim=embed_dim,
+            num_heads=num_heads,
             attn_dropout=attn_dropout,
             bias=True
         )
