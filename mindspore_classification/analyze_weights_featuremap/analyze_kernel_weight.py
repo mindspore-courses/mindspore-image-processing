@@ -1,5 +1,5 @@
 '''权重参数分析'''
-# pylint:disable=W0611
+# pylint:disable=W0611,E0401
 import mindspore
 from alexnet_model import AlexNet
 from resnet_model import resnet34
