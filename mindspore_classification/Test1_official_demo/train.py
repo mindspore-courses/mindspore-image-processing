@@ -1,4 +1,5 @@
 '''模型训练'''
+# pylint:disable=E0401
 import mindspore
 import mindspore.nn as nn
 import mindspore.dataset as ds
@@ -24,7 +25,7 @@ def main():
     # 第一次使用时要将download设置为True才会自动去下载数据集
     val_set = ds.Cifar10Dataset(dataset_dir=cifar10_dataset_dir, shuffle=False)
     val_loader = ds.GeneratorDataset(
-        val_set, shuffle=False, num_wonum_parallel_workersrkers=0)
+        val_set, shuffle=False, num_parallel_workers=0)
     val_loader = val_loader.map(operations=transform)
     val_loader = val_loader.batch(5000)
     val_data_iter = iter(val_loader)

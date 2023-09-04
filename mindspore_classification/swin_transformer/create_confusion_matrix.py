@@ -2,6 +2,8 @@
 # pylint:disable=E0401,W0611
 import os
 import json
+import argparse
+import sys
 
 import mindspore
 import mindspore.dataset as ds
@@ -10,17 +12,19 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from prettytable import PrettyTable
 
-from model import MobileNetV2
+from utils import read_split_data
+from my_dataset import MyDataSet
+from model import swin_base_patch4_window12_384_in22k as create_model
 
 
-class ConfusionMatrix():
+class ConfusionMatrix(object):
     """
     注意，如果显示的图像不全，是matplotlib版本问题
     本例程使用matplotlib-3.2.1(windows and ubuntu)绘制正常
     需要额外安装prettytable库
     """
 
-    def __init__(self, num_classes, labels):
+    def __init__(self, num_classes: int, labels: list):
         self.matrix = np.zeros((num_classes, num_classes))
         self.num_classes = num_classes
         self.labels = labels
@@ -82,39 +86,39 @@ class ConfusionMatrix():
         plt.show()
 
 
-if __name__ == '__main__':
-
+def main(args):
+    '''主函数'''
     mindspore.context.set_context(device_target="GPU")
 
-    data_transform = ds.transforms.Compose([ds.vision.Resize(256),
-                                            ds.vision.CenterCrop(224),
-                                            ds.vision.ToTensor(),
-                                            ds.vision.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+    _, _, val_images_path, val_images_label = read_split_data(args.data_path)
 
-    data_root = os.path.abspath(os.path.join(
-        os.getcwd(), "../.."))  # get data root path
-    image_path = os.path.join(data_root, "data_set",
-                              "flower_data")  # flower data set path
-    assert os.path.exists(
-        image_path), f"data path {image_path} does not exist."
+    img_size = 384
+    data_transform = {
+        "val": ds.transforms.Compose([ds.vision.Resize(int(img_size * 1.143)),
+                                      ds.vision.CenterCrop(img_size),
+                                      ds.vision.ToTensor(),
+                                      ds.vision.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])}
 
-    validate_dataset = ds.ImageFolderDataset(dataset_dir=image_path + "val")
-    validate_dataset = validate_dataset.map(
-        operations=data_transform, input_columns=["image"])
+    # 实例化验证数据集
+    val_dataset = MyDataSet(images_path=val_images_path,
+                            images_class=val_images_label,
+                            transform=data_transform["val"])
 
-    batch_size = 16
-    validate_loader = ds.GeneratorDataset(validate_dataset,
-                                          shuffle=False,
-                                          num_parallel_workers=2)
-    validate_loader = validate_loader.batch(batch_size=batch_size)
+    # number of workers
+    nw = min([os.cpu_count(), args.batch_size if args.batch_size > 1 else 0, 8])
+    print(f'Using {nw} dataloader workers every process')
 
-    net = MobileNetV2(num_classes=5)
+    val_loader = ds.GeneratorDataset(val_dataset,
+                                     shuffle=False,
+                                     num_parallel_workers=nw)
+    val_loader = val_loader.batch(
+        batch_size=args.batch_size, per_batch_map=val_dataset.collate_fn)
+    model = create_model(num_classes=args.num_classes)
     # load pretrain weights
-    model_weight_path = "./MobileNetV2.ckpt"
     assert os.path.exists(
-        model_weight_path), f"cannot find {model_weight_path} file"
+        args.weights), f"cannot find {args.weights} file"
     param_not_load, _ = mindspore.load_param_into_net(
-        net, mindspore.load_checkpoint(model_weight_path))
+        model, mindspore.load_checkpoint(args.weights))
     print(param_not_load)
 
     # read class_indict
@@ -124,15 +128,38 @@ if __name__ == '__main__':
     json_file = open(json_label_path, 'r', encoding='utf-8')
     class_indict = json.load(json_file)
 
-    m_labels = [label for _, label in class_indict.items()]
-    confusion = ConfusionMatrix(num_classes=5, labels=m_labels)
-    net.set_train(False)
-    for val_data in tqdm(validate_loader):
+    labels = [label for _, label in class_indict.items()]
+    confusion = ConfusionMatrix(num_classes=args.num_classes, labels=labels)
+    model.set_train(False)
+
+    for val_data in tqdm(val_loader, file=sys.stdout):
         val_images, val_labels = val_data
-        outputs = net(val_images)
+        outputs = model(val_images)
         outputs = mindspore.ops.softmax(outputs, axis=1)
         outputs = mindspore.ops.argmax(outputs, dim=1)
         confusion.update(outputs.asnumpy(),
                          val_labels.asnumpy())
     confusion.plot()
     confusion.summary()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_classes', type=int, default=5)
+    parser.add_argument('--batch-size', type=int, default=2)
+
+    # 数据集所在根目录
+    # http://download.tensorflow.org/example_images/flower_photos.tgz
+    parser.add_argument('--data-path', type=str,
+                        default="/data/flower_photos")
+
+    # 训练权重路径
+    parser.add_argument('--weights', type=str, default='./weights/model-19.ckpt',
+                        help='initial weights path')
+    # 是否冻结权重
+    parser.add_argument('--device', default='cuda:0',
+                        help='device id (i.e. 0 or 0,1 or cpu)')
+
+    opt = parser.parse_args()
+
+    main(opt)

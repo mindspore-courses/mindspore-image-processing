@@ -129,7 +129,7 @@ def main(args):
             summary_record.add_value('histogram', 'layer1/block0/conv1', model.layer1[0].conv1.weight)
 
             # save weights
-             mindspore.save_checkpoint(model,
+            mindspore.save_checkpoint(model,
                        "./weights/model-{}.ckpt".format(epoch))
 
 

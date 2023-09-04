@@ -1,12 +1,12 @@
-'''数据处理'''
-# pylint:disable=E0401
 import os
+import sys
 import json
 import pickle
 import random
 
-from PIL import Image
 import mindspore
+from tqdm import tqdm
+
 import matplotlib.pyplot as plt
 
 
@@ -19,13 +19,13 @@ def read_split_data(root: str, val_rate: float = 0.2):
     # 遍历文件夹，一个文件夹对应一个类别
     flower_class = [cla for cla in os.listdir(
         root) if os.path.isdir(os.path.join(root, cla))]
-    # 排序，保证顺序一致
+    # 排序，保证各平台顺序一致
     flower_class.sort()
     # 生成类别名称以及对应的数字索引
     class_indices = dict((k, v) for v, k in enumerate(flower_class))
     json_str = json.dumps(dict((val, key)
                           for key, val in class_indices.items()), indent=4)
-    with open('class_indices.json', 'w', encoding='utf-8') as json_file:
+    with open('class_indices.json', 'w') as json_file:
         json_file.write(json_str)
 
     train_images_path = []  # 存储训练集的所有图片路径
@@ -40,6 +40,8 @@ def read_split_data(root: str, val_rate: float = 0.2):
         # 遍历获取supported支持的所有文件路径
         images = [os.path.join(root, cla, i) for i in os.listdir(cla_path)
                   if os.path.splitext(i)[-1] in supported]
+        # 排序，保证各平台顺序一致
+        images.sort()
         # 获取该类别对应的索引
         image_class = class_indices[cla]
         # 记录该类别的样本数量
@@ -58,6 +60,10 @@ def read_split_data(root: str, val_rate: float = 0.2):
     print(f"{sum(every_class_num)} images were found in the dataset.")
     print(f"{len(train_images_path)} images for training.")
     print(f"{len(val_images_path)} images for validation.")
+    assert len(
+        train_images_path) > 0, "number of training images must greater than 0."
+    assert len(
+        val_images_path) > 0, "number of validation images must greater than 0."
 
     plot_image = False
     if plot_image:
@@ -86,14 +92,14 @@ def plot_data_loader_image(data_loader):
 
     json_path = './class_indices.json'
     assert os.path.exists(json_path), json_path + " does not exist."
-    json_file = open(json_path, 'r', encoding='utf-8')
+    json_file = open(json_path, 'r')
     class_indices = json.load(json_file)
 
     for data in data_loader:
         images, labels = data
         for i in range(plot_num):
             # [C, H, W] -> [H, W, C]
-            img = images[i].asnumpy().transpose(1, 2, 0)
+            img = images[i].numpy().transpose(1, 2, 0)
             # 反Normalize操作
             img = (img * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406]) * 255
             label = labels[i].item()
@@ -118,101 +124,73 @@ def read_pickle(file_name: str) -> list:
         return info_list
 
 
-def plot_class_preds(net,
-                     images_dir: str,
-                     transform,
-                     num_plot: int = 5,):
-    '''绘制预测图'''
-    if not os.path.exists(images_dir):
-        print(f"not found {images_dir} path, ignore add figure.")
-        return None
+def train_one_epoch(model, optimizer, data_loader, device, epoch):
+    '''训练'''
+    model.set_train(True)
+    criterion = mindspore.nn.CrossEntropyLoss()
+    accu_loss = mindspore.ops.zeros(1)  # 累计损失
+    accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
 
-    label_path = os.path.join(images_dir, "label.txt")
-    if not os.path.exists(label_path):
-        print(f"not found {label_path} file, ignore add figure")
-        return None
+    # 前向传播
+    def forward_fn(data, label):
+        logits = model(data)
+        loss = criterion(logits, label)
+        return loss, logits
 
-    # read class_indict
-    json_label_path = './class_indices.json'
-    assert os.path.exists(
-        json_label_path), f"not found {json_label_path}"
-    json_file = open(json_label_path, 'r', encoding='utf-8')
-    # {"0": "daisy"}
-    flower_class = json.load(json_file)
-    # {"daisy": "0"}
-    class_indices = dict((v, k) for k, v in flower_class.items())
+    # 梯度函数
+    grad_fn = mindspore.value_and_grad(
+        forward_fn, None, optimizer.parameters, has_aux=True)
 
-    # reading label.txt file
-    label_info = []
-    with open(label_path, "r", encoding='utf-8') as rd:
-        for line in rd.readlines():
-            line = line.strip()
-            if len(line) > 0:
-                split_info = [i for i in line.split(" ") if len(i) > 0]
-                assert len(
-                    split_info) == 2, "label format error, expect file_name and class_name"
-                image_name, class_name = split_info
-                image_path = os.path.join(images_dir, image_name)
-                # 如果文件不存在，则跳过
-                if not os.path.exists(image_path):
-                    print(f"not found {image_path}, skip.")
-                    continue
-                # 如果读取的类别不在给定的类别内，则跳过
-                if class_name not in class_indices.keys():
-                    print(f"unrecognized category {class_name}, skip")
-                    continue
-                label_info.append([image_path, class_name])
+    # 更新，训练
+    def train_step(data, label):
+        (loss, logits), grads = grad_fn(data, label)
+        optimizer(grads)
+        return loss, logits
 
-    if len(label_info) == 0:
-        return None
+    sample_num = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    step = 0
+    for step, data in enumerate(data_loader):
+        images, labels = data
+        sample_num += images.shape[0]
 
-    # get first num_plot info
-    if len(label_info) > num_plot:
-        label_info = label_info[:num_plot]
+        loss, pred = train_step(images, labels)
+        pred_classes = mindspore.ops.max(pred, axis=1)[1]
+        accu_num += mindspore.ops.equal(pred_classes, labels).sum()
 
-    num_imgs = len(label_info)
-    images = []
-    labels = []
-    for img_path, class_name in label_info:
-        # read img
-        img = Image.open(img_path).convert("RGB")
-        label_index = int(class_indices[class_name])
+        accu_loss += loss.detach()
 
-        # preprocessing
-        img = transform(img)
-        images.append(img)
-        labels.append(label_index)
+        data_loader.desc = "[train epoch {}] loss: {:.3f}, acc: {:.3f}".format(epoch,
+                                                                               accu_loss.item() / (step + 1),
+                                                                               accu_num.item() / sample_num)
 
-    # batching images
-    images = mindspore.ops.stack(images, axis=0)
+    return accu_loss.item() / (step + 1), accu_num.item() / sample_num
 
-    # inference
-    output = net(images)
-    probs, preds = mindspore.ops.max(
-        mindspore.ops.softmax(output, axis=1), axis=1)
-    probs = probs.asnumpy()
-    preds = preds.asnumpy()
 
-    # width, height
-    fig = plt.figure(figsize=(num_imgs * 2.5, 3), dpi=100)
-    for i in range(num_imgs):
-        # 1：子图共1行，num_imgs:子图共num_imgs列，当前绘制第i+1个子图
-        ax = fig.add_subplot(1, num_imgs, i+1, xticks=[], yticks=[])
+def evaluate(model, data_loader, device, epoch):
+    '''验证'''
+    loss_function = mindspore.nn.CrossEntropyLoss()
 
-        # CHW -> HWC
-        npimg = images[i].asnumpy().transpose(1, 2, 0)
+    model.set_train(False)
+    accu_loss = mindspore.ops.zeros(1)  # 累计损失
+    accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
 
-        # 将图像还原至标准化之前
-        # mean:[0.485, 0.456, 0.406], std:[0.229, 0.224, 0.225]
-        npimg = (npimg * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406]) * 255
-        plt.imshow(npimg.astype('uint8'))
+    sample_num = 0
+    data_loader = tqdm(data_loader, file=sys.stdout)
+    step = 0
+    for step, data in enumerate(data_loader):
+        images, labels = data
+        sample_num += images.shape[0]
 
-        title = "{}, {:.2f}%\n(label: {})".format(
-            flower_class[str(preds[i])],  # predict class
-            probs[i] * 100,  # predict probability
-            flower_class[str(labels[i])]  # true class
-        )
-        ax.set_title(title, color=(
-            "green" if preds[i] == labels[i] else "red"))
+        pred = model(images)
+        pred_classes = mindspore.ops.max(pred, axis=1)[1]
+        accu_num += mindspore.ops.equal(pred_classes, labels).sum()
 
-    return fig
+        loss = loss_function(pred, labels)
+        accu_loss += loss
+
+        data_loader.desc = "[valid epoch {}] loss: {:.3f}, acc: {:.3f}".format(epoch,
+                                                                               accu_loss.item() / (step + 1),
+                                                                               accu_num.item() / sample_num)
+
+    return accu_loss.item() / (step + 1), accu_num.item() / sample_num

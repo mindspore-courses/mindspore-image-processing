@@ -1,3 +1,4 @@
+'''模型训练工具类'''
 import sys
 
 from tqdm import tqdm

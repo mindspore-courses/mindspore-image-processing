@@ -1,4 +1,5 @@
 '''模型预测'''
+# pylint:disable=E0401
 import mindspore
 import mindspore.dataset as ds
 from PIL import Image
