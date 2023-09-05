@@ -1,3 +1,5 @@
+'''工具类'''
+# pylint:disable=E0401
 import os
 import sys
 import json
@@ -124,7 +126,7 @@ def read_pickle(file_name: str) -> list:
         return info_list
 
 
-def train_one_epoch(model, optimizer, data_loader, device, epoch):
+def train_one_epoch(model, optimizer, data_loader, epoch):
     '''训练'''
     model.set_train(True)
     criterion = mindspore.nn.CrossEntropyLoss()
@@ -167,7 +169,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch):
     return accu_loss.item() / (step + 1), accu_num.item() / sample_num
 
 
-def evaluate(model, data_loader, device, epoch):
+def evaluate(model, data_loader, epoch):
     '''验证'''
     loss_function = mindspore.nn.CrossEntropyLoss()
 

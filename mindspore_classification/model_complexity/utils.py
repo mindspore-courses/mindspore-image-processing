@@ -13,7 +13,8 @@ def conv2d_cx(cx, in_c, out_c, k, *, stride=1, groups=1, bias=False, trainable=T
     cx["h"] = h
     cx["w"] = w
     cx["c"] = out_c
-    cx["flops"] += k * k * in_c * out_c * h * w // groups + (out_c if bias else 0)
+    cx["flops"] += k * k * in_c * out_c * h * \
+        w // groups + (out_c if bias else 0)
     cx["params"] += k * k * in_c * out_c // groups + (out_c if bias else 0)
     cx["acts"] += out_c * h * w
     if trainable is False:
@@ -35,7 +36,7 @@ def pool2d_cx(cx, in_c, k, *, stride=1):
 
 def norm2d_cx(cx, in_c, trainable=True):
     """Accumulates complexity of norm2d into cx = (h, w, flops, params, acts)."""
-    c, params = cx["c"], cx["params"]
+    c, _ = cx["c"], cx["params"]
     assert c == in_c
     cx["params"] += 4 * c
     cx["freeze"] += 2 * c  # moving_mean, variance

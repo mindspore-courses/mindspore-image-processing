@@ -17,7 +17,7 @@ from my_dataset import MyDataSet
 from model import swin_base_patch4_window12_384_in22k as create_model
 
 
-class ConfusionMatrix(object):
+class ConfusionMatrix():
     """
     注意，如果显示的图像不全，是matplotlib版本问题
     本例程使用matplotlib-3.2.1(windows and ubuntu)绘制正常

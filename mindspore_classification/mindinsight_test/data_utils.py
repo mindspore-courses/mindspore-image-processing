@@ -1,5 +1,5 @@
 '''数据处理'''
-# pylint:disable=E0401
+# pylint:disable=E0401, W0611
 import os
 import json
 import pickle

@@ -1,5 +1,5 @@
 '''模型训练'''
-# pylint:disable=E0401
+# pylint:disable=E0401, E0611
 import os
 import math
 import argparse
@@ -126,11 +126,12 @@ def main(args):
 
             # add conv1 weights
             summary_record.add_value('histogram', 'conv1', model.conv1.weight)
-            summary_record.add_value('histogram', 'layer1/block0/conv1', model.layer1[0].conv1.weight)
+            summary_record.add_value(
+                'histogram', 'layer1/block0/conv1', model.layer1[0].conv1.weight)
 
             # save weights
             mindspore.save_checkpoint(model,
-                       "./weights/model-{}.ckpt".format(epoch))
+                                      "./weights/model-{}.ckpt".format(epoch))
 
 
 if __name__ == '__main__':

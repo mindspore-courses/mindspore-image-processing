@@ -56,7 +56,7 @@ def main():
 
     print_res = f"class: {class_indict[str(predict_cla)]}   prob: {predict[predict_cla].asnumpy():.3}"
     plt.title(print_res)
-    for i in range(len(predict)):
+    for i, _ in enumerate(predict):
         print(
             f"class: {class_indict[str(i)]:10}   prob: {predict[i].asnumpy():.3}")
     plt.show()

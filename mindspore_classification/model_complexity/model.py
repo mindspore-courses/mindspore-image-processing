@@ -1,3 +1,5 @@
+'''模型'''
+# pylint:disable=E0401, E0602
 from collections import OrderedDict
 from functools import partial
 from typing import Callable, Optional
@@ -26,7 +28,7 @@ def drop_path(x, drop_prob: float = 0., training: bool = False):
     shape = (x.shape[0],) + (1,) * (x.ndim - 1)
     random_tensor = keep_prob + \
         mindspore.ops.rand(shape, dtype=x.dtype)
-    random_tensor = mindspore.ops.Floor(random_tensor)  # binarize
+    random_tensor = mindspore.ops.floor(random_tensor)  # binarize
     output = x.div(keep_prob) * random_tensor
     return output
 
@@ -42,10 +44,13 @@ class DropPath(nn.Cell):
         self.drop_prob = drop_prob
 
     def construct(self, x):
+        '''DropPath construct'''
         return drop_path(x, self.drop_prob, self.training)
 
 
 class ConvBNAct(nn.Cell):
+    '''子模块'''
+
     def __init__(self,
                  in_planes: int,
                  out_planes: int,
@@ -74,6 +79,7 @@ class ConvBNAct(nn.Cell):
         self.act = activation_layer()
 
     def construct(self, x):
+        '''ConvBNAct construct'''
         result = self.conv(x)
         result = self.bn(result)
         result = self.act(result)
@@ -81,13 +87,14 @@ class ConvBNAct(nn.Cell):
         return result
 
     def complexity(self, cx):
+        '''ConvBNAct complexity'''
         cx = conv2d_cx(cx,
                        in_c=self.conv.in_channels,
                        out_c=self.conv.out_channels,
                        k=self.conv.kernel_size[0],  # tuple type
                        stride=self.conv.stride[0],  # tuple type
-                       group=self.conv.group,
-                       has_bias=False,
+                       groups=self.conv.group,
+                       bias=False,
                        trainable=self.conv.weight.requires_grad)
         cx = norm2d_cx(cx, self.conv.out_channels,
                        trainable=self.bn.weight.requires_grad)
@@ -96,6 +103,8 @@ class ConvBNAct(nn.Cell):
 
 
 class SqueezeExcite(nn.Cell):
+    '''子模块'''
+
     def __init__(self,
                  input_c: int,   # block input channel
                  expand_c: int,  # block expand channel
@@ -108,6 +117,7 @@ class SqueezeExcite(nn.Cell):
         self.act2 = nn.Sigmoid()
 
     def construct(self, x: Tensor) -> Tensor:
+        '''SqueezeExcite construct'''
         scale = x.mean((2, 3), keepdim=True)
         scale = self.conv_reduce(scale)
         scale = self.act1(scale)
@@ -116,19 +126,20 @@ class SqueezeExcite(nn.Cell):
         return scale * x
 
     def complexity(self, cx):
+        '''SqueezeExcite complexity'''
         h, w = cx["h"], cx["w"]
         cx = gap2d_cx(cx)
         cx = conv2d_cx(cx,
                        in_c=self.conv_reduce.in_channels,
                        out_c=self.conv_reduce.out_channels,
                        k=1,
-                       has_bias=True,
+                       bias=True,
                        trainable=self.conv_reduce.weight.requires_grad)
         cx = conv2d_cx(cx,
                        in_c=self.conv_expand.in_channels,
                        out_c=self.conv_expand.out_channels,
                        k=1,
-                       has_bias=True,
+                       bias=True,
                        trainable=self.conv_expand.weight.requires_grad)
         cx["h"], cx["w"] = h, w
 
@@ -136,6 +147,8 @@ class SqueezeExcite(nn.Cell):
 
 
 class MBConv(nn.Cell):
+    '''子模块'''
+
     def __init__(self,
                  kernel_size: int,
                  input_c: int,
@@ -191,6 +204,7 @@ class MBConv(nn.Cell):
             self.dropout = DropPath(drop_rate)
 
     def construct(self, x: Tensor) -> Tensor:
+        '''MBConv construct'''
         result = self.expand_conv(x)
         result = self.dwconv(result)
         result = self.se(result)
@@ -204,6 +218,7 @@ class MBConv(nn.Cell):
         return result
 
     def complexity(self, cx):
+        '''MBConv complexity'''
         cx = self.expand_conv.complexity(cx)
         cx = self.dwconv.complexity(cx)
         cx = self.se.complexity(cx)
@@ -213,6 +228,8 @@ class MBConv(nn.Cell):
 
 
 class FusedMBConv(nn.Cell):
+    '''子模块'''
+
     def __init__(self,
                  kernel_size: int,
                  input_c: int,
@@ -267,6 +284,7 @@ class FusedMBConv(nn.Cell):
             self.dropout = DropPath(drop_rate)
 
     def construct(self, x: Tensor) -> Tensor:
+        '''FusedMBConv construct'''
         if self.has_expansion:
             result = self.expand_conv(x)
             result = self.project_conv(result)
@@ -282,6 +300,7 @@ class FusedMBConv(nn.Cell):
         return result
 
     def complexity(self, cx):
+        '''FusedMBConv complexity'''
         if self.has_expansion:
             cx = self.expand_conv.complexity(cx)
             cx = self.project_conv.complexity(cx)
@@ -292,6 +311,8 @@ class FusedMBConv(nn.Cell):
 
 
 class EfficientNetV2(nn.Cell):
+    '''模型'''
+
     def __init__(self,
                  model_cnf: list,
                  num_classes: int = 1000,
@@ -374,6 +395,7 @@ class EfficientNetV2(nn.Cell):
                         "zeros", cell.bias.shape, cell.bias.dtype))
 
     def construct(self, x: Tensor) -> Tensor:
+        '''EfficientNetV2 construct'''
         x = self.stem(x)
         x = self.blocks(x)
         x = self.head(x)
@@ -381,6 +403,7 @@ class EfficientNetV2(nn.Cell):
         return x
 
     def complexity(self, h, w, c):
+        '''EfficientNetV2 complexity'''
         cx = {"h": h, "w": w, "c": c, "flops": 0,
               "params": 0, "acts": 0, "freeze": 0}
         cx = self.stem.complexity(cx)
