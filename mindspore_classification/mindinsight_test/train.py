@@ -10,7 +10,7 @@ from mindspore.train.summary import SummaryRecord
 
 from model import resnet34
 from my_dataset import MyDataSet
-from data_utils import read_split_data, plot_class_preds
+from data_utils import read_split_data
 from train_eval_utils import train_one_epoch, evaluate
 
 # mindinsight start --summary-base-dir ./summary_dir

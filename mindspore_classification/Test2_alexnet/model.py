@@ -12,7 +12,7 @@ class AlexNet(nn.Cell):
     """
 
     def __init__(self, num_classes=1000, init_weights=False):
-        super(AlexNet, self).__init__()
+        super().__init__()
         self.features = nn.SequentialCell(
             nn.Conv2d(3, 64, kernel_size=11, stride=4,
                       padding=2, has_bias=True),
