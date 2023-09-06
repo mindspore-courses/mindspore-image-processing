@@ -78,7 +78,8 @@ def main(args):
                 print(f"training {name}")
 
     pg = [p for p in model.get_parameters() if p.requires_grad]
-    optimizer = mindspore.nn.AdamW(pg, lr=args.lr, weight_decay=1E-2)
+    optimizer = mindspore.nn.Adam(
+        pg, learning_rate=args.lr, weight_decay=1E-2)
 
     with SummaryRecord(log_dir="./summary_dir", network=model) as summary_record:
         for epoch in range(args.epochs):
