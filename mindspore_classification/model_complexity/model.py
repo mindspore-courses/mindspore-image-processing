@@ -1,5 +1,5 @@
 '''模型'''
-# pylint:disable=E0401, E0602
+# pylint:disable=E0401, E0602, W0401
 from collections import OrderedDict
 from functools import partial
 from typing import Callable, Optional
