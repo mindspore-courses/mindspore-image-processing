@@ -67,7 +67,7 @@ def main():
         predict = mindspore.ops.softmax(output, axis=1)
         probs, classes = mindspore.ops.max(predict, axis=1)
 
-         for idx, (pro, cla) in enumerate(zip(probs, classes)):
+        for idx, (pro, cla) in enumerate(zip(probs, classes)):
             print("image: {}  class: {}  prob: {:.3}".format(img_path_list[ids * batch_size + idx],
                                                                  class_indict[str(
                                                                      cla.asnumpy())],

@@ -7,6 +7,8 @@ from mindspore.common import initializer as weight_init
 
 
 class GoogLeNet(nn.Cell):
+    '''GoogLeNet'''
+
     def __init__(self, num_classes=1000, aux_logits=True, init_weights=False):
         super().__init__()
         self.aux_logits = aux_logits
@@ -116,8 +118,10 @@ class GoogLeNet(nn.Cell):
 
 
 class Inception(nn.Cell):
+    '''Inception'''
+
     def __init__(self, in_channels, ch1x1, ch3x3red, ch3x3, ch5x5red, ch5x5, pool_proj):
-        super(Inception, self).__init__()
+        super().__init__()
 
         self.branch1 = BasicConv2d(in_channels, ch1x1, kernel_size=1)
 
@@ -151,6 +155,8 @@ class Inception(nn.Cell):
 
 
 class InceptionAux(nn.Cell):
+    '''InceptionAux'''
+
     def __init__(self, in_channels, num_classes):
         super().__init__()
         self.averagePool = nn.AvgPool2d(kernel_size=5, stride=3)
@@ -180,6 +186,8 @@ class InceptionAux(nn.Cell):
 
 
 class BasicConv2d(nn.Cell):
+    '''卷积层'''
+
     def __init__(self, in_channels, out_channels, **kwargs):
         super().__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, **kwargs)

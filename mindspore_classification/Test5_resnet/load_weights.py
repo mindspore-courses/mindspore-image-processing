@@ -1,3 +1,5 @@
+'''权重加载'''
+# pylint: disable=E0401
 import os
 import mindspore
 import mindspore.nn as nn
