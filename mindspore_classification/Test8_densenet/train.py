@@ -1,14 +1,15 @@
 '''模型训练'''
 # pylint:disable = E0401
 import os
+import math
 import argparse
 
 import mindspore
 import mindspore.dataset as ds
 from mindspore.train.summary import SummaryRecord
 
+from model import densenet121
 from my_dataset import MyDataSet
-from model import mobile_vit_xx_small as create_model
 from utils import read_split_data, train_one_epoch, evaluate
 
 
@@ -57,76 +58,84 @@ def main(args):
     val_loader = val_loader.batch(
         batch_size=batch_size, per_batch_map=val_dataset.collate_fn)
 
-    model = create_model(num_classes=args.num_classes)
-
+    # 如果存在预训练权重则载入
+    model = densenet121(num_classes=args.num_classes)
     if args.weights != "":
-        assert os.path.exists(
-            args.weights), f"weights file: '{args.weights}' not exist."
-        weights_dict = mindspore.load_checkpoint(args.weights)
-        # 删除有关分类类别的权重
-        for k in list(weights_dict.keys()):
-            if "head" in k:
-                del weights_dict[k]
-        mindspore.load_param_into_net(model, weights_dict)
+        if os.path.exists(args.weights):
+            weights_dict = mindspore.load_checkpoint(args.weights)["model"]
+            mindspore.load_param_into_net(model, weights_dict)
+        else:
+            raise FileNotFoundError(
+                "not found weights file: {}".format(args.weights))
 
+    # 是否冻结权重
     if args.freeze_layers:
-        for name, para in model.trainable_params():
-            # 除head外，其他权重全部冻结
-            if "head" not in name:
+        for name, para in model.get_parameters():
+            # 除最后的全连接层外，其他权重全部冻结
+            if "classifier" not in name:
                 para.requires_grad = False
-            else:
-                print(f"training {name}")
 
-    pg = [p for p in model.get_parameters() if p.requires_grad]
-    optimizer = mindspore.nn.AdamWeightDecay(
-        pg, learning_rate=args.lr, weight_decay=1E-2)
+    pg = [p for _, p in model.get_parameters() if p.requires_grad]
 
-    best_acc = 0.
+    # 动态学习率
+    class MyLR(mindspore.nn.LearningRateSchedule):
+        '''自定义动态学习率'''
+
+        def __init__(self, lr, lrf, epochs):
+            super().__init__()
+            self.lr = lr
+            self.lrf = lrf
+            self.epochs = epochs
+
+        def construct(self, global_step):
+            '''学习率计算'''
+            return ((1 + math.cos(global_step * math.pi / self.epochs)) / 2) * \
+                (1 - self.lrf) + self.lrf + self.lr  # cosine
+
+    lr = MyLR(args.lr, args.lrf, args.epochs)
+
+    optimizer = mindspore.nn.SGD(
+        pg, learning_rate=lr, momentum=0.9, weight_decay=1E-4)
+
     with SummaryRecord(log_dir="./summary_dir", network=model) as summary_record:
         for epoch in range(args.epochs):
             # train
-            train_loss, train_acc = train_one_epoch(model=model,
-                                                    optimizer=optimizer,
-                                                    data_loader=train_loader,
-                                                    epoch=epoch)
+            mean_loss = train_one_epoch(model=model,
+                                        optimizer=optimizer,
+                                        data_loader=train_loader,
+                                        epoch=epoch)
 
             # validate
-            val_loss, val_acc = evaluate(model=model,
-                                         data_loader=val_loader,
-                                         epoch=epoch)
+            acc = evaluate(model=model,
+                           data_loader=val_loader)
 
-            tags = ["train_loss", "train_acc",
-                    "val_loss", "val_acc", "learning_rate"]
-            summary_record.add_value('scalar', tags[0], train_loss)
-            summary_record.add_value('scalar', tags[1], train_acc)
-            summary_record.add_value('scalar', tags[2], val_loss)
-            summary_record.add_value('scalar', tags[3], val_acc)
+            print("[epoch {}] accuracy: {}".format(epoch, round(acc, 3)))
+            tags = ["loss", "accuracy", "learning_rate"]
+            summary_record.add_value('scalar', tags[0], mean_loss)
+            summary_record.add_value('scalar', tags[1], acc)
             summary_record.add_value(
-                'scalar', tags[4], optimizer.learning_rate.data.asnumpy())
+                'scalar', tags[2], optimizer.learning_rate.data.asnumpy())
 
-            if best_acc < val_acc:
-                mindspore.save_checkpoint(model, "./weights/best_model.ckpt")
-                best_acc = val_acc
-
-            mindspore.save_checkpoint(model, "./weights/latest_model.pth")
+            mindspore.save_checkpoint(model, f"./weights/model-{epoch}.ckpt")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_classes', type=int, default=5)
-    parser.add_argument('--epochs', type=int, default=10)
-    parser.add_argument('--batch-size', type=int, default=8)
-    parser.add_argument('--lr', type=float, default=0.0002)
+    parser.add_argument('--epochs', type=int, default=30)
+    parser.add_argument('--batch-size', type=int, default=16)
+    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--lrf', type=float, default=0.1)
 
     # 数据集所在根目录
     # https://storage.googleapis.com/download.tensorflow.org/example_images/flower_photos.tgz
     parser.add_argument('--data-path', type=str,
                         default="/data/flower_photos")
 
-    # 预训练权重路径，如果不想载入就设置为空字符
-    parser.add_argument('--weights', type=str, default='./mobilevit_xxs.ckpt',
+    # densenet121 官方权重下载地址
+    # https://download.pytorch.org/models/densenet121-a639ec97.pth
+    parser.add_argument('--weights', type=str, default='densenet121.ckpt',
                         help='initial weights path')
-    # 是否冻结权重
     parser.add_argument('--freeze-layers', type=bool, default=False)
     parser.add_argument('--device', default='cuda:0',
                         help='device id (i.e. 0 or 0,1 or cpu)')

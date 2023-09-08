@@ -70,7 +70,7 @@ def main(args):
         mindspore.load_param_into_net(model, weights_dict)
 
     if args.freeze_layers:
-        for name, para in model.named_parameters():
+        for name, para in model.get_parameters():
             # 除head外，其他权重全部冻结
             if "head" not in name:
                 para.requires_grad = False
@@ -78,7 +78,7 @@ def main(args):
                 print(f"training {name}")
 
     pg = [p for p in model.get_parameters() if p.requires_grad]
-    optimizer = mindspore.nn.Adam(
+    optimizer = mindspore.nn.AdamWeightDecay(
         pg, learning_rate=args.lr, weight_decay=1E-2)
 
     with SummaryRecord(log_dir="./summary_dir", network=model) as summary_record:
