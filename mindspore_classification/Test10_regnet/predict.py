@@ -8,7 +8,7 @@ import mindspore.dataset as ds
 from PIL import Image
 import matplotlib.pyplot as plt
 
-from model import densenet121
+from model import create_regnet
 
 
 def main():
@@ -42,9 +42,9 @@ def main():
         class_indict = json.load(f)
 
     # create model
-    model = densenet121(num_classes=5)
+    model = create_regnet(model_name="RegNetY_400MF", num_classes=5)
     # load model weights
-    model_weight_path = "./weights/model-3.ckpt"
+    model_weight_path = "./weights/model-29.ckpt"
     param_dict = mindspore.load_checkpoint(model_weight_path)
     param_not_load, _ = mindspore.load_param_into_net(model, param_dict)
     print(param_not_load)

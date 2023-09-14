@@ -1,15 +1,10 @@
-'''模型'''
-# pylint:disable=E0401, E0602, W0401
 from collections import OrderedDict
 from functools import partial
 from typing import Callable, Optional
-
+import numpy as np
 import mindspore.nn as nn
-import mindspore
+import mindspore.ops as ops
 from mindspore import Tensor
-import mindspore.common.initializer as init
-
-from utils import *
 
 
 def drop_path(x, drop_prob: float = 0., training: bool = False):
@@ -27,8 +22,8 @@ def drop_path(x, drop_prob: float = 0., training: bool = False):
     # work with diff dim tensors, not just 2D ConvNets
     shape = (x.shape[0],) + (1,) * (x.ndim - 1)
     random_tensor = keep_prob + \
-        mindspore.ops.rand(shape, dtype=x.dtype)
-    random_tensor = mindspore.ops.floor(random_tensor)  # binarize
+        ops.rand(shape, dtype=x.dtype)
+    random_tensor.floor_()  # binarize
     output = x.div(keep_prob) * random_tensor
     return output
 
@@ -40,17 +35,14 @@ class DropPath(nn.Cell):
     """
 
     def __init__(self, drop_prob=None):
-        super().__init__()
+        super(DropPath, self).__init__()
         self.drop_prob = drop_prob
 
     def construct(self, x):
-        '''DropPath construct'''
         return drop_path(x, self.drop_prob, self.training)
 
 
 class ConvBNAct(nn.Cell):
-    '''子模块'''
-
     def __init__(self,
                  in_planes: int,
                  out_planes: int,
@@ -59,13 +51,13 @@ class ConvBNAct(nn.Cell):
                  groups: int = 1,
                  norm_layer: Optional[Callable[..., nn.Cell]] = None,
                  activation_layer: Optional[Callable[..., nn.Cell]] = None):
-        super().__init__()
+        super(ConvBNAct, self).__init__()
 
         padding = (kernel_size - 1) // 2
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
         if activation_layer is None:
-            activation_layer = nn.SiLU  # alias Swish  (torch>=1.7)
+            activation_layer = nn.SiLU
 
         self.conv = nn.Conv2d(in_channels=in_planes,
                               out_channels=out_planes,
@@ -79,45 +71,26 @@ class ConvBNAct(nn.Cell):
         self.act = activation_layer()
 
     def construct(self, x):
-        '''ConvBNAct construct'''
         result = self.conv(x)
         result = self.bn(result)
         result = self.act(result)
 
         return result
 
-    def complexity(self, cx):
-        '''ConvBNAct complexity'''
-        cx = conv2d_cx(cx,
-                       in_c=self.conv.in_channels,
-                       out_c=self.conv.out_channels,
-                       k=self.conv.kernel_size[0],  # tuple type
-                       stride=self.conv.stride[0],  # tuple type
-                       groups=self.conv.group,
-                       bias=False,
-                       trainable=self.conv.weight.requires_grad)
-        cx = norm2d_cx(cx, self.conv.out_channels,
-                       trainable=self.bn.weight.requires_grad)
-
-        return cx
-
 
 class SqueezeExcite(nn.Cell):
-    '''子模块'''
-
     def __init__(self,
                  input_c: int,   # block input channel
                  expand_c: int,  # block expand channel
                  se_ratio: float = 0.25):
-        super().__init__()
+        super(SqueezeExcite, self).__init__()
         squeeze_c = int(input_c * se_ratio)
-        self.conv_reduce = nn.Conv2d(expand_c, squeeze_c, 1, has_bias=True)
+        self.conv_reduce = nn.Conv2d(expand_c, squeeze_c, 1)
         self.act1 = nn.SiLU()  # alias Swish
-        self.conv_expand = nn.Conv2d(squeeze_c, expand_c, 1, has_bias=True)
+        self.conv_expand = nn.Conv2d(squeeze_c, expand_c, 1)
         self.act2 = nn.Sigmoid()
 
     def construct(self, x: Tensor) -> Tensor:
-        '''SqueezeExcite construct'''
         scale = x.mean((2, 3), keepdim=True)
         scale = self.conv_reduce(scale)
         scale = self.act1(scale)
@@ -125,30 +98,8 @@ class SqueezeExcite(nn.Cell):
         scale = self.act2(scale)
         return scale * x
 
-    def complexity(self, cx):
-        '''SqueezeExcite complexity'''
-        h, w = cx["h"], cx["w"]
-        cx = gap2d_cx(cx)
-        cx = conv2d_cx(cx,
-                       in_c=self.conv_reduce.in_channels,
-                       out_c=self.conv_reduce.out_channels,
-                       k=1,
-                       bias=True,
-                       trainable=self.conv_reduce.weight.requires_grad)
-        cx = conv2d_cx(cx,
-                       in_c=self.conv_expand.in_channels,
-                       out_c=self.conv_expand.out_channels,
-                       k=1,
-                       bias=True,
-                       trainable=self.conv_expand.weight.requires_grad)
-        cx["h"], cx["w"] = h, w
-
-        return cx
-
 
 class MBConv(nn.Cell):
-    '''子模块'''
-
     def __init__(self,
                  kernel_size: int,
                  input_c: int,
@@ -158,7 +109,7 @@ class MBConv(nn.Cell):
                  se_ratio: float,
                  drop_rate: float,
                  norm_layer: Callable[..., nn.Cell]):
-        super().__init__()
+        super(MBConv, self).__init__()
 
         if stride not in [1, 2]:
             raise ValueError("illegal stride value.")
@@ -204,7 +155,6 @@ class MBConv(nn.Cell):
             self.dropout = DropPath(drop_rate)
 
     def construct(self, x: Tensor) -> Tensor:
-        '''MBConv construct'''
         result = self.expand_conv(x)
         result = self.dwconv(result)
         result = self.se(result)
@@ -217,19 +167,8 @@ class MBConv(nn.Cell):
 
         return result
 
-    def complexity(self, cx):
-        '''MBConv complexity'''
-        cx = self.expand_conv.complexity(cx)
-        cx = self.dwconv.complexity(cx)
-        cx = self.se.complexity(cx)
-        cx = self.project_conv.complexity(cx)
-
-        return cx
-
 
 class FusedMBConv(nn.Cell):
-    '''子模块'''
-
     def __init__(self,
                  kernel_size: int,
                  input_c: int,
@@ -239,7 +178,7 @@ class FusedMBConv(nn.Cell):
                  se_ratio: float,
                  drop_rate: float,
                  norm_layer: Callable[..., nn.Cell]):
-        super().__init__()
+        super(FusedMBConv, self).__init__()
 
         assert stride in [1, 2]
         assert se_ratio == 0
@@ -284,7 +223,6 @@ class FusedMBConv(nn.Cell):
             self.dropout = DropPath(drop_rate)
 
     def construct(self, x: Tensor) -> Tensor:
-        '''FusedMBConv construct'''
         if self.has_expansion:
             result = self.expand_conv(x)
             result = self.project_conv(result)
@@ -299,33 +237,18 @@ class FusedMBConv(nn.Cell):
 
         return result
 
-    def complexity(self, cx):
-        '''FusedMBConv complexity'''
-        if self.has_expansion:
-            cx = self.expand_conv.complexity(cx)
-            cx = self.project_conv.complexity(cx)
-        else:
-            cx = self.project_conv.complexity(cx)
-
-        return cx
-
 
 class EfficientNetV2(nn.Cell):
-    '''模型'''
-
     def __init__(self,
                  model_cnf: list,
                  num_classes: int = 1000,
                  num_features: int = 1280,
                  dropout_rate: float = 0.2,
                  drop_connect_rate: float = 0.2):
-        super().__init__()
+        super(EfficientNetV2, self).__init__()
 
         for cnf in model_cnf:
             assert len(cnf) == 8
-        self.model_cnf = model_cnf
-        self.num_classes = num_classes
-        self.num_features = num_features
 
         norm_layer = partial(nn.BatchNorm2d, eps=1e-3, momentum=0.1)
 
@@ -373,58 +296,32 @@ class EfficientNetV2(nn.Cell):
         self.head = nn.SequentialCell(head)
 
         # initial weights
-        for _,cell in self.cells_and_names():
-            if isinstance(cell, nn.Conv2d):
-                cell.weight.set_data(init.initializer(
-                    init.HeUniform(), cell.weight.shape, cell.weight.dtype))
-                if cell.bias is not None:
-                    cell.bias.set_data(init.initializer(
-                        "zeros", cell.bias.shape, cell.bias.dtype))
-            elif isinstance(cell, nn.BatchNorm2d):
-                cell.weight.set_data(init.initializer(
-                    "ones", cell.weight.shape, cell.weight.dtype))
-                cell.bias.set_data(init.initializer(
-                    "zeros", cell.bias.shape, cell.bias.dtype))
-            elif isinstance(cell, nn.Dense):
-                cell.weight.set_data(
-                    init.initializer(init.TruncatedNormal(
-                        sigma=0.01), cell.weight.shape, cell.weight.dtype)
-                )
-                if cell.bias is not None:
-                    cell.bias.set_data(init.initializer(
-                        "zeros", cell.bias.shape, cell.bias.dtype))
+        for _, m in self.cells_and_names():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.set_data(Tensor(np.random.normal(0, np.sqrt(2. / n),
+                                                          m.weight.data.shape).astype("float32")))
+                if m.bias is not None:
+                    m.bias.set_data(
+                        Tensor(np.zeros(m.bias.data.shape, dtype="float32")))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.gamma.set_data(
+                    Tensor(np.ones(m.gamma.data.shape, dtype="float32")))
+                m.beta.set_data(
+                    Tensor(np.zeros(m.beta.data.shape, dtype="float32")))
+            elif isinstance(m, nn.Dense):
+                m.weight.set_data(Tensor(np.random.normal(
+                    0, 0.01, m.weight.data.shape).astype("float32")))
+                if m.bias is not None:
+                    m.bias.set_data(
+                        Tensor(np.zeros(m.bias.data.shape, dtype="float32")))
 
     def construct(self, x: Tensor) -> Tensor:
-        '''EfficientNetV2 construct'''
         x = self.stem(x)
         x = self.blocks(x)
         x = self.head(x)
 
         return x
-
-    def complexity(self, h, w, c):
-        '''EfficientNetV2 complexity'''
-        cx = {"h": h, "w": w, "c": c, "flops": 0,
-              "params": 0, "acts": 0, "freeze": 0}
-        cx = self.stem.complexity(cx)
-
-        for module in self.blocks.children():
-            if hasattr(module, "complexity"):
-                cx = module.complexity(cx)
-            else:
-                print(module)
-
-        for module in self.head.children():
-            if hasattr(module, "complexity"):
-                cx = module.complexity(cx)
-            elif isinstance(module, nn.Dense):
-                in_units = module.in_features
-                out_units = module.out_features
-                cx = gap2d_cx(cx)
-                cx = linear_cx(cx, in_units, out_units, bias=True,
-                               trainable=module.weight.requires_grad)
-        # print(cx)
-        return cx
 
 
 def efficientnetv2_s(num_classes: int = 1000):

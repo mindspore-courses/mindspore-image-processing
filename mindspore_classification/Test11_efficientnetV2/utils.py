@@ -130,7 +130,8 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
     '''训练'''
     model.set_train(True)
     loss_function = mindspore.nn.CrossEntropyLoss()
-    mean_loss = mindspore.ops.zeros(1)
+    accu_loss = mindspore.ops.zeros(1)  # 累计损失
+    accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
 
     # 前向传播
     def forward_fn(data, label):
@@ -148,37 +149,49 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
         optimizer(grads)
         return loss, logits
 
+    sample_num = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
-
     for step, data in enumerate(data_loader):
         images, labels = data
+        sample_num += images.shape[0]
 
-        loss, _ = train_step(images, labels)
+        loss, pred = train_step(images, labels)
 
-        mean_loss = (mean_loss * step + loss.detach()) / \
-            (step + 1)  # update mean losses
+        pred_classes = mindspore.ops.max(pred, 1)[1]
+        accu_num += mindspore.ops.equal(pred_classes, labels).sum()
 
-        data_loader.desc = f"[epoch {epoch}] mean loss {round(mean_loss.item(), 3)}"
+        accu_loss += loss.detach()
 
-    return mean_loss.item()
+        data_loader.desc = "[train epoch {}] loss: {:.3f}, acc: {:.3f}".format(epoch,
+                                                                               accu_loss.item() / (step + 1),
+                                                                               accu_num.item() / sample_num)
+
+    return accu_loss.item() / (step + 1), accu_num.item() / sample_num
 
 
-def evaluate(model, data_loader):
+def evaluate(model, data_loader, epoch):
     '''验证'''
     model.set_train(False)
+    loss_function = mindspore.nn.CrossEntropyLoss()
 
-    # 验证样本总个数
-    total_num = len(data_loader.dataset)
+    accu_num = mindspore.ops.zeros(1)   # 累计预测正确的样本数
+    accu_loss = mindspore.ops.zeros(1)  # 累计损失
 
-    # 用于存储预测正确的样本个数
-    sum_num = mindspore.ops.zeros(1)
-
+    sample_num = 0
     data_loader = tqdm(data_loader, file=sys.stdout)
-
-    for _, data in enumerate(data_loader):
+    for step, data in enumerate(data_loader):
         images, labels = data
-        pred = model(images)
-        pred = mindspore.ops.max(pred, axis=1)[1]
-        sum_num += mindspore.ops.equal(pred, labels).sum()
+        sample_num += images.shape[0]
 
-    return sum_num.item() / total_num
+        pred = model(images)
+        pred_classes = mindspore.ops.max(pred, 1)[1]
+        accu_num += mindspore.ops.equal(pred_classes, labels).sum()
+
+        loss = loss_function(pred, labels)
+        accu_loss += loss
+
+        data_loader.desc = "[valid epoch {}] loss: {:.3f}, acc: {:.3f}".format(epoch,
+                                                                               accu_loss.item() / (step + 1),
+                                                                               accu_num.item() / sample_num)
+
+    return accu_loss.item() / (step + 1), accu_num.item() / sample_num

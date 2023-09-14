@@ -8,16 +8,26 @@ import mindspore.dataset as ds
 from PIL import Image
 import matplotlib.pyplot as plt
 
-from model import densenet121
+from model import efficientnet_b0 as create_model
 
 
 def main():
     '''主函数'''
     mindspore.set_context(device_target="GPU")
 
+    img_size = {"B0": 224,
+                "B1": 240,
+                "B2": 260,
+                "B3": 300,
+                "B4": 380,
+                "B5": 456,
+                "B6": 528,
+                "B7": 600}
+    num_model = "B0"
+
     data_transform = ds.transforms.Compose(
-        [ds.vision.Resize(256),
-         ds.vision.CenterCrop(224),
+        [ds.vision.Resize(img_size[num_model]),
+         ds.vision.CenterCrop(img_size[num_model]),
          ds.vision.ToTensor(),
          ds.vision.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
@@ -42,9 +52,9 @@ def main():
         class_indict = json.load(f)
 
     # create model
-    model = densenet121(num_classes=5)
+    model = create_model(num_classes=5)
     # load model weights
-    model_weight_path = "./weights/model-3.ckpt"
+    model_weight_path = "./weights/model-29.ckpt"
     param_dict = mindspore.load_checkpoint(model_weight_path)
     param_not_load, _ = mindspore.load_param_into_net(model, param_dict)
     print(param_not_load)

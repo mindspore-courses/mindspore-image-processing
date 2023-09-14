@@ -147,7 +147,7 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
         (loss, logits), grads = grad_fn(data, label)
         optimizer(grads)
         return loss, logits
-    
+
     data_loader = tqdm(data_loader, file=sys.stdout)
 
     for step, data in enumerate(data_loader):
@@ -155,12 +155,10 @@ def train_one_epoch(model, optimizer, data_loader, epoch):
 
         loss, _ = train_step(images, labels)
 
-        
         mean_loss = (mean_loss * step + loss.detach()) / \
             (step + 1)  # update mean losses
 
         data_loader.desc = f"[epoch {epoch}] mean loss {round(mean_loss.item(), 3)}"
-
 
     return mean_loss.item()
 
@@ -181,6 +179,6 @@ def evaluate(model, data_loader):
         images, labels = data
         pred = model(images)
         pred = mindspore.ops.max(pred, axis=1)[1]
-        sum_num += mindspore.ops.equal.eq(pred, labels).sum()
+        sum_num += mindspore.ops.equal(pred, labels).sum()
 
     return sum_num.item() / total_num

@@ -101,7 +101,7 @@ class ResNet(nn.Cell):
             self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # output size = (1, 1)
             self.fc = nn.Dense(512 * block.expansion, num_classes)
 
-        for cell in self.modules():
+        for _,cell in self.cells_and_names():
             if isinstance(cell, nn.Conv2d):
                 cell.weight.set_data(ms.common.initializer.initializer(
                     ms.common.initializer.HeNormal(

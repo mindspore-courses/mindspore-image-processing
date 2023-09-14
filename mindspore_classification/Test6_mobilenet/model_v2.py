@@ -105,7 +105,7 @@ class MobileNetV2(nn.Cell):
         )
 
         # weight initialization
-        for cell in self.modules():
+        for _, cell in self.cells_and_names():
             if isinstance(cell, nn.Conv2d):
                 cell.weight.set_data(init.initializer(
                     init.HeUniform(), cell.weight.shape, cell.weight.dtype))
