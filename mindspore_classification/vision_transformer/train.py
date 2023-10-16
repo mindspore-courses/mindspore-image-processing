@@ -112,7 +112,7 @@ def main(args):
                 'scalar', tags[4], optimizer.learning_rate.data.asnumpy())
 
             mindspore.save_checkpoint(
-                model, "./weights/model-{}.pth".format(epoch))
+                model, "./weights/model-{}.ckpt".format(epoch))
 
 
 if __name__ == '__main__':

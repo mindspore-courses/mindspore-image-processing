@@ -153,7 +153,7 @@ if __name__ == '__main__':
                         default="/data/flower_photos")
 
     # 训练好的权重路径
-    parser.add_argument('--weights', type=str, default='./resNet(flower).pth',
+    parser.add_argument('--weights', type=str, default='./resNet(flower).ckpt',
                         help='trained weights path')
 
     parser.add_argument('--device', default='cuda:0',
