@@ -74,7 +74,6 @@ def main():
 
     net = resnet34()
     # load pretrain weights
-    # download url: https://download.pytorch.org/models/resnet34-333f7ec4.pth
     model_weight_path = "./resnet34-pre.ckpt"
     assert os.path.exists(
         model_weight_path), f"file {model_weight_path} does not exist."

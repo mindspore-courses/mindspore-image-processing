@@ -108,7 +108,7 @@ def main(args):
                 mindspore.save_checkpoint(model, "./weights/best_model.ckpt")
                 best_acc = val_acc
 
-            mindspore.save_checkpoint(model, "./weights/latest_model.pth")
+            mindspore.save_checkpoint(model, "./weights/latest_model.ckpt")
 
 
 if __name__ == '__main__':
