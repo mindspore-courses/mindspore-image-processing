@@ -5,6 +5,7 @@ from collections import OrderedDict
 from typing import Optional, Callable
 import numpy as np
 import mindspore.nn as nn
+'''model'''
 from mindspore import Tensor
 import mindspore.ops as ops
 
@@ -53,7 +54,7 @@ class DropPath(nn.Cell):
     """
 
     def __init__(self, drop_prob=None):
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
 
     def construct(self, x):
@@ -61,6 +62,8 @@ class DropPath(nn.Cell):
 
 
 class ConvBNActivation(nn.SequentialCell):
+    '''ConvBNActivation'''
+
     def __init__(self,
                  in_planes: int,
                  out_planes: int,
@@ -75,23 +78,25 @@ class ConvBNActivation(nn.SequentialCell):
         if activation_layer is None:
             activation_layer = nn.SiLU  # alias Swish  (torch>=1.7)
 
-        super(ConvBNActivation, self).__init__(nn.Conv2d(in_channels=in_planes,
-                                                         out_channels=out_planes,
-                                                         kernel_size=kernel_size,
-                                                         stride=stride,
-                                                         padding=padding,
-                                                         group=groups,
-                                                         has_bias=False),
-                                               norm_layer(out_planes),
-                                               activation_layer())
+        super().__init__(nn.Conv2d(in_channels=in_planes,
+                                   out_channels=out_planes,
+                                   kernel_size=kernel_size,
+                                   stride=stride,
+                                   padding=padding,
+                                   group=groups,
+                                   has_bias=False),
+                         norm_layer(out_planes),
+                         activation_layer())
 
 
 class SqueezeExcitation(nn.Cell):
+    '''SqueezeExcitation'''
+
     def __init__(self,
                  input_c: int,   # block input channel
                  expand_c: int,  # block expand channel
                  squeeze_factor: int = 4):
-        super(SqueezeExcitation, self).__init__()
+        super().__init__()
         squeeze_c = input_c // squeeze_factor
         self.fc1 = nn.Conv2d(expand_c, squeeze_c, 1)
         self.ac1 = nn.SiLU()  # alias Swish
@@ -109,7 +114,9 @@ class SqueezeExcitation(nn.Cell):
 
 
 class InvertedResidualConfig:
+    '''InvertedResidualConfig'''
     # kernel_size, in_channel, out_channel, exp_ratio, strides, use_SE, drop_connect_rate
+
     def __init__(self,
                  kernel: int,          # 3 or 5
                  input_c: int,
@@ -131,14 +138,17 @@ class InvertedResidualConfig:
 
     @staticmethod
     def adjust_channels(channels: int, width_coefficient: float):
+        '''channels'''
         return _make_divisible(channels * width_coefficient, 8)
 
 
 class InvertedResidual(nn.Cell):
+    '''InvertedResidual'''
+
     def __init__(self,
                  cnf: InvertedResidualConfig,
                  norm_layer: Callable[..., nn.Cell]):
-        super(InvertedResidual, self).__init__()
+        super().__init__()
 
         if cnf.stride not in [1, 2]:
             raise ValueError("illegal stride value.")
@@ -196,6 +206,8 @@ class InvertedResidual(nn.Cell):
 
 
 class EfficientNet(nn.Cell):
+    '''EfficientNet'''
+
     def __init__(self,
                  width_coefficient: float,
                  depth_coefficient: float,
@@ -205,7 +217,7 @@ class EfficientNet(nn.Cell):
                  block: Optional[Callable[..., nn.Cell]] = None,
                  norm_layer: Optional[Callable[..., nn.Cell]] = None
                  ):
-        super(EfficientNet, self).__init__()
+        super().__init__()
 
         # kernel_size, in_channel, out_channel, exp_ratio, strides, use_SE, drop_connect_rate, repeats
         default_cnf = [[3, 32, 16, 1, 1, True, drop_connect_rate, 1],
@@ -315,7 +327,7 @@ class EfficientNet(nn.Cell):
 
 
 def efficientnet_b0(num_classes=1000):
-    # input image size 224x224
+    '''input image size 224x224'''
     return EfficientNet(width_coefficient=1.0,
                         depth_coefficient=1.0,
                         dropout_rate=0.2,
@@ -323,7 +335,7 @@ def efficientnet_b0(num_classes=1000):
 
 
 def efficientnet_b1(num_classes=1000):
-    # input image size 240x240
+    '''input image size 240x240'''
     return EfficientNet(width_coefficient=1.0,
                         depth_coefficient=1.1,
                         dropout_rate=0.2,
@@ -331,7 +343,7 @@ def efficientnet_b1(num_classes=1000):
 
 
 def efficientnet_b2(num_classes=1000):
-    # input image size 260x260
+    '''input image size 260x260'''
     return EfficientNet(width_coefficient=1.1,
                         depth_coefficient=1.2,
                         dropout_rate=0.3,
@@ -339,7 +351,7 @@ def efficientnet_b2(num_classes=1000):
 
 
 def efficientnet_b3(num_classes=1000):
-    # input image size 300x300
+    '''input image size 300x300'''
     return EfficientNet(width_coefficient=1.2,
                         depth_coefficient=1.4,
                         dropout_rate=0.3,
@@ -347,7 +359,7 @@ def efficientnet_b3(num_classes=1000):
 
 
 def efficientnet_b4(num_classes=1000):
-    # input image size 380x380
+    '''input image size 380x380'''
     return EfficientNet(width_coefficient=1.4,
                         depth_coefficient=1.8,
                         dropout_rate=0.4,
@@ -355,7 +367,7 @@ def efficientnet_b4(num_classes=1000):
 
 
 def efficientnet_b5(num_classes=1000):
-    # input image size 456x456
+    '''input image size 456x456'''
     return EfficientNet(width_coefficient=1.6,
                         depth_coefficient=2.2,
                         dropout_rate=0.4,
@@ -363,7 +375,7 @@ def efficientnet_b5(num_classes=1000):
 
 
 def efficientnet_b6(num_classes=1000):
-    # input image size 528x528
+    '''input image size 528x528'''
     return EfficientNet(width_coefficient=1.8,
                         depth_coefficient=2.6,
                         dropout_rate=0.5,
@@ -371,7 +383,7 @@ def efficientnet_b6(num_classes=1000):
 
 
 def efficientnet_b7(num_classes=1000):
-    # input image size 600x600
+    '''input image size 600x600'''
     return EfficientNet(width_coefficient=2.0,
                         depth_coefficient=3.1,
                         dropout_rate=0.5,

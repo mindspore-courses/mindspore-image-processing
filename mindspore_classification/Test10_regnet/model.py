@@ -1,3 +1,4 @@
+'''model'''
 from typing import Optional
 
 import numpy as np
@@ -79,6 +80,8 @@ def adjust_width_groups_comp(widths: list, groups: list):
 
 
 class ConvBNAct(nn.Cell):
+    '''ConvBNAct'''
+
     def __init__(self,
                  in_c: int,
                  out_c: int,
@@ -87,7 +90,7 @@ class ConvBNAct(nn.Cell):
                  padding: int = 0,
                  groups: int = 1,
                  act: Optional[nn.Cell] = nn.ReLU()):
-        super(ConvBNAct, self).__init__()
+        super().__init__()
 
         self.conv = nn.Conv2d(in_channels=in_c,
                               out_channels=out_c,
@@ -108,12 +111,14 @@ class ConvBNAct(nn.Cell):
 
 
 class RegHead(nn.Cell):
+    '''RegHead'''
+
     def __init__(self,
                  in_unit: int = 368,
                  out_unit: int = 1000,
                  output_size: tuple = (1, 1),
                  drop_ratio: float = 0.25):
-        super(RegHead, self).__init__()
+        super().__init__()
         self.pool = nn.AdaptiveAvgPool2d(output_size)
 
         if drop_ratio > 0:
@@ -132,8 +137,10 @@ class RegHead(nn.Cell):
 
 
 class SqueezeExcitation(nn.Cell):
+    '''SqueezeExcitation'''
+
     def __init__(self, input_c: int, expand_c: int, se_ratio: float = 0.25):
-        super(SqueezeExcitation, self).__init__()
+        super().__init__()
         squeeze_c = int(input_c * se_ratio)
         self.fc1 = nn.Conv2d(expand_c, squeeze_c, 1)
         self.ac1 = nn.ReLU()
@@ -150,6 +157,8 @@ class SqueezeExcitation(nn.Cell):
 
 
 class Bottleneck(nn.Cell):
+    '''Bottleneck'''
+
     def __init__(self,
                  in_c: int,
                  out_c: int,
@@ -157,7 +166,7 @@ class Bottleneck(nn.Cell):
                  group_width: int = 1,
                  se_ratio: float = 0.,
                  drop_ratio: float = 0.):
-        super(Bottleneck, self).__init__()
+        super().__init__()
 
         self.conv1 = ConvBNAct(in_c=in_c, out_c=out_c, kernel_s=1)
         self.conv2 = ConvBNAct(in_c=out_c,
@@ -187,6 +196,7 @@ class Bottleneck(nn.Cell):
             self.downsample = nn.Identity()
 
     def zero_init_last_bn(self):
+        '''init'''
         self.conv3.bn.weight.set_data(
             Tensor(np.zeros(self.conv3.bn.weight.data.shape, dtype="float32")))
 
@@ -208,13 +218,15 @@ class Bottleneck(nn.Cell):
 
 
 class RegStage(nn.Cell):
+    '''RegStage'''
+
     def __init__(self,
                  in_c: int,
                  out_c: int,
                  depth: int,
                  group_width: int,
                  se_ratio: float):
-        super(RegStage, self).__init__()
+        super().__init__()
         for i in range(depth):
             block_stride = 2 if i == 0 else 1
             block_in_c = in_c if i == 0 else out_c
@@ -246,7 +258,7 @@ class RegNet(nn.Cell):
                  in_c: int = 3,
                  num_classes: int = 1000,
                  zero_init_last_bn: bool = True):
-        super(RegNet, self).__init__()
+        super().__init__()
 
         # RegStem
         stem_c = cfg["stem_width"]
@@ -317,6 +329,7 @@ class RegNet(nn.Cell):
 
 
 def create_regnet(model_name="RegNetX_200MF", num_classes=1000):
+    '''create regnet'''
     model_name = model_name.lower().replace("-", "_")
     if model_name not in model_cfgs.keys():
         print("support model name: \n{}".format("\n".join(model_cfgs.keys())))

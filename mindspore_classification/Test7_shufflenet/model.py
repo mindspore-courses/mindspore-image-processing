@@ -1,3 +1,4 @@
+'''model'''
 from typing import List, Callable
 
 import mindspore
@@ -6,7 +7,7 @@ import mindspore.nn as nn
 
 
 def channel_shuffle(x: Tensor, groups: int) -> Tensor:
-
+    '''channels'''
     batch_size, num_channels, height, width = x.size()
     channels_per_group = num_channels // groups
 
@@ -23,8 +24,10 @@ def channel_shuffle(x: Tensor, groups: int) -> Tensor:
 
 
 class InvertedResidual(nn.Cell):
+    '''InvertedResidual'''
+
     def __init__(self, input_c: int, output_c: int, stride: int):
-        super(InvertedResidual, self).__init__()
+        super().__init__()
 
         if stride not in [1, 2]:
             raise ValueError("illegal stride value.")
@@ -70,10 +73,11 @@ class InvertedResidual(nn.Cell):
                        stride: int = 1,
                        padding: int = 0,
                        bias: bool = False) -> nn.Conv2d:
+        '''Conv'''
         return nn.Conv2d(in_channels=input_c, out_channels=output_c, kernel_size=kernel_s,
                          stride=stride, padding=padding, has_bias=bias, group=input_c)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def construct(self, x: Tensor) -> Tensor:
         if self.stride == 1:
             x1, x2 = x.chunk(2, dim=1)
             out = mindspore.ops.cat((x1, self.branch2(x2)), axis=1)
@@ -86,12 +90,14 @@ class InvertedResidual(nn.Cell):
 
 
 class ShuffleNetV2(nn.Cell):
+    '''ShuffleNetV2'''
+
     def __init__(self,
                  stages_repeats: List[int],
                  stages_out_channels: List[int],
                  num_classes: int = 1000,
                  inverted_residual: Callable[..., nn.Cell] = InvertedResidual):
-        super(ShuffleNetV2, self).__init__()
+        super().__init__()
 
         if len(stages_repeats) != 3:
             raise ValueError(
@@ -124,7 +130,7 @@ class ShuffleNetV2(nn.Cell):
         for name, repeats, output_channels in zip(stage_names, stages_repeats,
                                                   self._stage_out_channels[1:]):
             seq = [inverted_residual(input_channels, output_channels, 2)]
-            for i in range(repeats - 1):
+            for _ in range(repeats - 1):
                 seq.append(inverted_residual(
                     output_channels, output_channels, 1))
             setattr(self, name, nn.SequentialCell(*seq))
@@ -152,7 +158,7 @@ class ShuffleNetV2(nn.Cell):
         x = self.fc(x)
         return x
 
-    def forward(self, x: Tensor) -> Tensor:
+    def construct(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)
 
 

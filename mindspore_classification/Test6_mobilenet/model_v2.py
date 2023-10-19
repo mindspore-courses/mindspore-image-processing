@@ -23,6 +23,8 @@ def _make_divisible(ch, divisor=8, min_ch=None):
 
 
 class ConvBNReLU(nn.SequentialCell):
+    '''ConvBNReLU'''
+
     def __init__(self, in_channel, out_channel, kernel_size=3, stride=1, groups=1):
         padding = (kernel_size - 1) // 2
         super().__init__(
@@ -34,6 +36,8 @@ class ConvBNReLU(nn.SequentialCell):
 
 
 class InvertedResidual(nn.Cell):
+    '''InvertedResidual'''
+
     def __init__(self, in_channel, out_channel, stride, expand_ratio):
         super().__init__()
         hidden_channel = in_channel * expand_ratio
@@ -58,12 +62,15 @@ class InvertedResidual(nn.Cell):
 
     def construct(self, x):
         if self.use_shortcut:
-            return x + self.conv(x)
+            out = x + self.conv(x)
         else:
-            return self.conv(x)
+            out = self.conv(x)
+        return out
 
 
 class MobileNetV2(nn.Cell):
+    '''MobileNetV2'''
+
     def __init__(self, num_classes=1000, alpha=1.0, round_nearest=8):
         super().__init__()
         block = InvertedResidual

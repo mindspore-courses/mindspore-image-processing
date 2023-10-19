@@ -107,7 +107,7 @@ def main():
     # 前向传播
     def forward_fn(data, label):
         logits = net(data)
-        loss1 = loss_function(logits, label)
+        loss = loss_function(logits, label)
         return loss, logits
 
     # 梯度函数
@@ -128,7 +128,7 @@ def main():
         for _, data in enumerate(train_bar):
             images, labels = data
 
-            loss, logits = train_step(images, labels)
+            loss, _ = train_step(images, labels)
 
             # print statistics
             running_loss += loss.item()

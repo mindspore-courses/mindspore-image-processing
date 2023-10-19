@@ -1,3 +1,4 @@
+'''model'''
 from collections import OrderedDict
 from functools import partial
 from typing import Callable, Optional
@@ -35,7 +36,7 @@ class DropPath(nn.Cell):
     """
 
     def __init__(self, drop_prob=None):
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
 
     def construct(self, x):
@@ -43,6 +44,8 @@ class DropPath(nn.Cell):
 
 
 class ConvBNAct(nn.Cell):
+    '''ConvBNAct'''
+
     def __init__(self,
                  in_planes: int,
                  out_planes: int,
@@ -51,7 +54,7 @@ class ConvBNAct(nn.Cell):
                  groups: int = 1,
                  norm_layer: Optional[Callable[..., nn.Cell]] = None,
                  activation_layer: Optional[Callable[..., nn.Cell]] = None):
-        super(ConvBNAct, self).__init__()
+        super().__init__()
 
         padding = (kernel_size - 1) // 2
         if norm_layer is None:
@@ -79,11 +82,13 @@ class ConvBNAct(nn.Cell):
 
 
 class SqueezeExcite(nn.Cell):
+    '''SqueezeExcite'''
+
     def __init__(self,
                  input_c: int,   # block input channel
                  expand_c: int,  # block expand channel
                  se_ratio: float = 0.25):
-        super(SqueezeExcite, self).__init__()
+        super().__init__()
         squeeze_c = int(input_c * se_ratio)
         self.conv_reduce = nn.Conv2d(expand_c, squeeze_c, 1)
         self.act1 = nn.SiLU()  # alias Swish
@@ -100,6 +105,8 @@ class SqueezeExcite(nn.Cell):
 
 
 class MBConv(nn.Cell):
+    '''MBConv'''
+
     def __init__(self,
                  kernel_size: int,
                  input_c: int,
@@ -109,7 +116,7 @@ class MBConv(nn.Cell):
                  se_ratio: float,
                  drop_rate: float,
                  norm_layer: Callable[..., nn.Cell]):
-        super(MBConv, self).__init__()
+        super().__init__()
 
         if stride not in [1, 2]:
             raise ValueError("illegal stride value.")
@@ -169,6 +176,8 @@ class MBConv(nn.Cell):
 
 
 class FusedMBConv(nn.Cell):
+    '''FusedMBConv'''
+
     def __init__(self,
                  kernel_size: int,
                  input_c: int,
@@ -178,7 +187,7 @@ class FusedMBConv(nn.Cell):
                  se_ratio: float,
                  drop_rate: float,
                  norm_layer: Callable[..., nn.Cell]):
-        super(FusedMBConv, self).__init__()
+        super().__init__()
 
         assert stride in [1, 2]
         assert se_ratio == 0
@@ -239,13 +248,15 @@ class FusedMBConv(nn.Cell):
 
 
 class EfficientNetV2(nn.Cell):
+    '''EfficientNetV2'''
+
     def __init__(self,
                  model_cnf: list,
                  num_classes: int = 1000,
                  num_features: int = 1280,
                  dropout_rate: float = 0.2,
                  drop_connect_rate: float = 0.2):
-        super(EfficientNetV2, self).__init__()
+        super().__init__()
 
         for cnf in model_cnf:
             assert len(cnf) == 8

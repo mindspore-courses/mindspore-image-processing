@@ -176,7 +176,7 @@ def evaluate(model, data_loader):
 
     data_loader = tqdm(data_loader, file=sys.stdout)
 
-    for step, data in enumerate(data_loader):
+    for _, data in enumerate(data_loader):
         images, labels = data
         pred = model(images)
         pred = mindspore.ops.max(pred, axis=1)[1]

@@ -27,6 +27,8 @@ def _make_divisible(ch, divisor=8, min_ch=None):
 
 
 class ConvBNActivation(nn.SequentialCell):
+    '''ConvBNActivation'''
+
     def __init__(self,
                  in_planes: int,
                  out_planes: int,
@@ -52,6 +54,8 @@ class ConvBNActivation(nn.SequentialCell):
 
 
 class SqueezeExcitation(nn.Cell):
+    '''SqueezeExcitation'''
+
     def __init__(self, input_c: int, squeeze_factor: int = 4):
         super().__init__()
         squeeze_c = _make_divisible(input_c // squeeze_factor, 8)
@@ -68,6 +72,8 @@ class SqueezeExcitation(nn.Cell):
 
 
 class InvertedResidualConfig:
+    '''InvertedResidualConfig'''
+
     def __init__(self,
                  input_c: int,
                  kernel: int,
@@ -87,10 +93,13 @@ class InvertedResidualConfig:
 
     @staticmethod
     def adjust_channels(channels: int, width_multi: float):
+        '''channels'''
         return _make_divisible(channels * width_multi, 8)
 
 
 class InvertedResidual(nn.Cell):
+    '''InvertedResidual'''
+
     def __init__(self,
                  cnf: InvertedResidualConfig,
                  norm_layer: Callable[..., nn.Cell]):
@@ -144,19 +153,21 @@ class InvertedResidual(nn.Cell):
 
 
 class MobileNetV3(nn.Cell):
+    '''MobileNetV3'''
+
     def __init__(self,
                  inverted_residual_setting: List[InvertedResidualConfig],
                  last_channel: int,
                  num_classes: int = 1000,
                  block: Optional[Callable[..., nn.Cell]] = None,
                  norm_layer: Optional[Callable[..., nn.Cell]] = None):
-        super(MobileNetV3, self).__init__()
+        super().__init__()
 
         if not inverted_residual_setting:
             raise ValueError(
                 "The inverted_residual_setting should not be empty.")
-        elif not (isinstance(inverted_residual_setting, List) and
-                  all([isinstance(s, InvertedResidualConfig) for s in inverted_residual_setting])):
+        if not (isinstance(inverted_residual_setting, List) and
+                all(isinstance(s, InvertedResidualConfig) for s in inverted_residual_setting)):
             raise TypeError(
                 "The inverted_residual_setting should be List[InvertedResidualConfig]")
 

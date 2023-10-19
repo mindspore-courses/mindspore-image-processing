@@ -1,6 +1,5 @@
 """
-MindSpore implementation of `DenseNet`.
-Refer to: Densely Connected Convolutional Networks
+model
 """
 
 import math
@@ -198,10 +197,12 @@ class DenseNet(nn.Cell):
                         "zeros", cell.bias.shape, cell.bias.dtype))
 
     def forward_features(self, x: Tensor) -> Tensor:
+        '''features'''
         x = self.features(x)
         return x
 
     def forward_head(self, x: Tensor) -> Tensor:
+        '''head'''
         x = self.pool(x)
         x = self.classifier(x)
         return x
