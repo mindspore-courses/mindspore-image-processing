@@ -33,11 +33,11 @@ class RetinaWithLossCell(nn.Cell):
     Retina with loss.
     """
 
-    def __init__(self, multibox_loss, config):
+    def __init__(self, multibox_loss):
         super(RetinaWithLossCell, self).__init__()
-        self.loc_weight = config['loc_weight']
-        self.class_weight = config['class_weight']
-        self.landm_weight = config['landm_weight']
+        self.loc_weight = 0.5
+        self.class_weight = 0.2
+        self.landm_weight = 0.3
         self.multibox_loss = multibox_loss
 
     def construct(self, img, loc_t, conf_t, landm_t):
