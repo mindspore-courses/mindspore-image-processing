@@ -1,3 +1,4 @@
+'''model'''
 import math
 import copy
 from functools import partial
@@ -5,7 +6,6 @@ from collections import OrderedDict
 from typing import Optional, Callable
 import numpy as np
 import mindspore.nn as nn
-'''model'''
 from mindspore import Tensor
 import mindspore.ops as ops
 
