@@ -1,3 +1,5 @@
+'''test'''
+# pylint: disable=E0401
 from coco_utils import apply_eval
 
 

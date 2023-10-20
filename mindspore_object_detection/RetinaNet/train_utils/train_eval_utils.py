@@ -1,7 +1,9 @@
+'''test'''
+# pylint: disable=E0401
 from coco_utils import apply_eval
 
 
-def eval(dataset, net, anno_json):
+def R_eval(dataset, net, anno_json):
     """evaluation."""
     batch_size = 1
 

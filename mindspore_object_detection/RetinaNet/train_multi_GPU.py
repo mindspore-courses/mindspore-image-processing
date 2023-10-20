@@ -1,3 +1,5 @@
+'''单机多卡'''
+# pylint: disable=E0401
 import os
 
 import time
@@ -8,7 +10,7 @@ from mindspore.communication import init
 
 from my_dataset import create_dataset
 from src import RetinaWithLossCell, GeneratDefaultBoxes, resnet50, RetinaNet, MultiBoxLoss, get_lr
-from train_utils import eval, InferWithDecoder
+from train_utils import R_eval, InferWithDecoder
 from plot_curve import plot_loss_and_lr
 
 
@@ -88,7 +90,7 @@ def main(parser_data):
     ds = create_dataset(parser_data.data_test_path, batch_size=parser_data.batch_size,
                         is_training=False, use_multiprocessing=False)
     net = InferWithDecoder(net, Tensor(default_boxes), 'model.ckpt')
-    eval(ds, net,  parser_data.anno_json)
+    R_eval(ds, net,  parser_data.anno_json)
 
 
 if __name__ == '__main__':

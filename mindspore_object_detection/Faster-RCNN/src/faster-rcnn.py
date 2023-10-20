@@ -1,4 +1,5 @@
 '''model'''
+# pylint: disable=E0401,R0902
 import numpy as np
 
 import mindspore
@@ -9,6 +10,8 @@ from mindspore.ops import operations as P
 from mindspore.ops import functional as F
 from mindspore.ops import composite as C
 from mindspore.nn import layer as L
+
+from utils import AnchorGenerator
 
 
 class ResNet(nn.Cell):
@@ -1300,15 +1303,19 @@ class SingleRoIExtractor(nn.Cell):
                                               self.out_size, self.out_size)), dtype=self.dtype))
 
     def num_inputs(self):
+        '''return len'''
         return len(self.featmap_strides)
 
     def init_weights(self):
+        '''初始化'''
         pass
 
     def log2(self, value):
+        '''celculate'''
         return self.log(value) / self.log(self.twos)
 
     def build_roi_layers(self, featmap_strides):
+        ''' build layers'''
         roi_layers = []
         for s in featmap_strides:
             layer_cls = ROIAlign(self.out_size, self.out_size,
@@ -1353,8 +1360,6 @@ class Faster_Rcnn(nn.Cell):
 
     def __init__(self, config):
         super().__init__()
-        # self.dtype = np.float32
-        # self.ms_type = ms.float32
         self.dtype = np.float32
         self.ms_type = mindspore.float32
         self.train_batch_size = config.batch_size  # 设置训练时的batch大小 batch_size: 2

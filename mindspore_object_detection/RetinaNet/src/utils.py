@@ -1,3 +1,5 @@
+'''工具类：lr、loss'''
+# pylint: disable=E0401
 import math
 import itertools as it
 import numpy as np
@@ -34,7 +36,7 @@ class RetinaWithLossCell(nn.Cell):
     """
 
     def __init__(self, multibox_loss):
-        super(RetinaWithLossCell, self).__init__()
+        super().__init__()
         self.loc_weight = 0.5
         self.class_weight = 0.2
         self.landm_weight = 0.3
@@ -53,7 +55,7 @@ class MultiBoxLoss(nn.Cell):
     """
 
     def __init__(self, num_classes, num_boxes, neg_pre_positive, batch_size):
-        super(MultiBoxLoss, self).__init__()
+        super().__init__()
         self.num_classes = num_classes
         self.num_boxes = num_boxes
         self.neg_pre_positive = neg_pre_positive
@@ -188,25 +190,3 @@ class GeneratDefaultBoxes():
         self.default_boxes_tlbr = np.array(
             tuple(to_tlbr(*i) for i in self.default_boxes), dtype='float32')
         self.default_boxes = np.array(self.default_boxes, dtype='float32')
-
-
-def get_lr(global_step, lr_init, lr_end, lr_max, warmup_epochs, total_epochs, steps_per_epoch):
-    """ generate learning rate array"""
-    lr_each_step = []
-    total_steps = steps_per_epoch * total_epochs
-    warmup_steps = steps_per_epoch * warmup_epochs
-    for i in range(total_steps):
-        if i < warmup_steps:
-            lr = lr_init + (lr_max - lr_init) * i / warmup_steps
-        else:
-            lr = lr_end + (lr_max - lr_end) * (1. + math.cos(math.pi *
-                                                             (i - warmup_steps) / (total_steps - warmup_steps))) / 2.
-        if lr < 0.0:
-            lr = 0.0
-        lr_each_step.append(lr)
-
-    current_step = global_step
-    lr_each_step = np.array(lr_each_step).astype(np.float32)
-    learning_rate = lr_each_step[current_step:]
-
-    return learning_rate

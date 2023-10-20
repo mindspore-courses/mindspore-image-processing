@@ -1,3 +1,5 @@
+'''数据集'''
+# pylint: disable=E0401, W0632
 import numpy as np
 import cv2
 from src import GeneratDefaultBoxes

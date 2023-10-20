@@ -1,3 +1,4 @@
+'''model'''
 import mindspore as ms
 import mindspore.nn as nn
 import mindspore.ops as ops
@@ -6,10 +7,10 @@ import mindspore.ops as ops
 def _last_conv2d(in_channel, out_channel, kernel_size=3, stride=1, pad_mod='same', pad=0):
     in_channels = in_channel
     out_channels = in_channel
-    depthwise_conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, pad_mode='same',
+    depthwise_conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, pad_mode=pad_mod,
                                padding=pad, group=in_channels)
     conv = nn.Conv2d(in_channel, out_channel, kernel_size=1,
-                     stride=1, padding=0, pad_mode='same', has_bias=True)
+                     stride=1, padding=0, pad_mode=pad_mod, has_bias=True)
     bn = nn.BatchNorm2d(in_channel, eps=1e-3, momentum=0.97,
                         gamma_init=1, beta_init=0, moving_mean_init=0, moving_var_init=1)
 
@@ -31,7 +32,7 @@ class Vgg16(nn.Cell):
     """VGG16 module."""
 
     def __init__(self):
-        super(Vgg16, self).__init__()
+        super().__init__()
         self.b1 = _make_layer([3, 64, 64])
         self.b2 = _make_layer([64, 128, 128])
         self.b3 = _make_layer([128, 256, 256, 256])
@@ -73,7 +74,7 @@ class FlattenConcat(nn.Cell):
     """FlattenConcat module."""
 
     def __init__(self):
-        super(FlattenConcat, self).__init__()
+        super().__init__()
         self.num_ssd_boxes = 8732
 
     def construct(self, inputs):
@@ -92,7 +93,7 @@ class MultiBox(nn.Cell):
     """
 
     def __init__(self):
-        super(MultiBox, self).__init__()
+        super().__init__()
         num_classes = 81
         out_channels = [512, 1024, 512, 256, 256, 256]
         num_default = [4, 6, 6, 6, 4, 4]
@@ -122,7 +123,7 @@ class SSD300Vgg16(nn.Cell):
     """SSD300Vgg16 module."""
 
     def __init__(self):
-        super(SSD300Vgg16, self).__init__()
+        super().__init__()
 
         # VGG16 backbone: block1~5
         self.backbone = Vgg16()

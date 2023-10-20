@@ -1,8 +1,11 @@
+'''绘图'''
+# pylint: disable=E0401
 import datetime
 import matplotlib.pyplot as plt
 
 
 def plot_loss_and_lr(train_loss, learning_rate):
+    '''绘制学习率以及loss曲线'''
     try:
         x = list(range(len(train_loss)))
         fig, ax1 = plt.subplots(1, 1)

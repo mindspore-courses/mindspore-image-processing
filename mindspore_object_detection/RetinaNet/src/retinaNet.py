@@ -1,13 +1,11 @@
+'''model'''
+# pylint: disable=R0201
 import math
-import numpy as np
 from functools import reduce
+import numpy as np
 
 from mindspore import nn, ops, Tensor
-from mindspore import context
 import mindspore as ms
-from mindspore.ops import functional, operations, composite
-from mindspore.communication.management import get_group_size
-from mindspore.parallel._auto_parallel_context import auto_parallel_context
 
 
 def init_kaiming_uniform(arr_shape, a=0, nonlinearity='leaky_relu', has_bias=False):
@@ -94,7 +92,7 @@ class ResidualBlock(nn.Cell):
                  in_channel,
                  out_channel,
                  stride=1):
-        super(ResidualBlock, self).__init__()
+        super().__init__()
 
         channel = out_channel // self.expansion
         self.conv1 = conv(1, in_channel, channel, stride=1)
@@ -154,7 +152,7 @@ class ResNet(nn.Cell):
                  in_channels,
                  out_channels,
                  strides):
-        super(ResNet, self).__init__()
+        super().__init__()
 
         self.conv1 = conv(7, 3, 64, stride=2)
         self.bn1 = nn.BatchNorm2d(64)
@@ -245,7 +243,7 @@ class ClassHead(nn.Cell):
     """
 
     def __init__(self, inchannels=512, num_anchors=3):
-        super(ClassHead, self).__init__()
+        super().__init__()
         self.num_anchors = num_anchors
 
         weight_shape = (self.num_anchors * 2, inchannels, 1, 1)
@@ -270,7 +268,7 @@ class BboxHead(nn.Cell):
     """
 
     def __init__(self, inchannels=512, num_anchors=3):
-        super(BboxHead, self).__init__()
+        super().__init__()
 
         weight_shape = (num_anchors * 4, inchannels, 1, 1)
         kaiming_weight, kaiming_bias = init_kaiming_uniform(
@@ -294,7 +292,7 @@ class LandmarkHead(nn.Cell):
     """
 
     def __init__(self, inchannels=512, num_anchors=3):
-        super(LandmarkHead, self).__init__()
+        super().__init__()
 
         weight_shape = (num_anchors * 10, inchannels, 1, 1)
         kaiming_weight, kaiming_bias = init_kaiming_uniform(
@@ -319,7 +317,7 @@ class ConvBNReLU(nn.SequentialCell):
         weight_shape = (out_planes, in_planes, kernel_size, kernel_size)
         kaiming_weight, _ = init_kaiming_uniform(weight_shape, a=math.sqrt(5))
         activation = nn.ReLU()
-        super(ConvBNReLU, self).__init__(
+        super().__init__(
             nn.Conv2d(in_planes, out_planes, kernel_size, stride, pad_mode='pad', padding=padding, group=groups,
                       has_bias=False, weight_init=kaiming_weight),
             norm_layer(out_planes),
@@ -334,7 +332,7 @@ class ConvBN(nn.SequentialCell):
         weight_shape = (out_planes, in_planes, kernel_size, kernel_size)
         kaiming_weight, _ = init_kaiming_uniform(weight_shape, a=math.sqrt(5))
 
-        super(ConvBN, self).__init__(
+        super().__init__(
             nn.Conv2d(in_planes, out_planes, kernel_size, stride, pad_mode='pad', padding=padding, group=groups,
                       has_bias=False, weight_init=kaiming_weight),
             norm_layer(out_planes),
@@ -347,7 +345,7 @@ class SSH(nn.Cell):
     """
 
     def __init__(self, in_channel, out_channel):
-        super(SSH, self).__init__()
+        super().__init__()
 
         norm_layer = nn.BatchNorm2d
         self.conv3x3 = ConvBN(in_channel, out_channel // 2, kernel_size=3, stride=1, padding=1, groups=1,
@@ -388,7 +386,7 @@ class FPN(nn.Cell):
     """
 
     def __init__(self, in_channel=None, out_channel=None):
-        super(FPN, self).__init__()
+        super().__init__()
         norm_layer = nn.BatchNorm2d
         if in_channel is None or out_channel is None:
             self.output1 = ConvBNReLU(512, 256, kernel_size=1, stride=1, padding=0, groups=1,
@@ -443,7 +441,7 @@ class RetinaNet(nn.Cell):
 
     def __init__(self, phase='train', backbone=None, cfg=None):
 
-        super(RetinaNet, self).__init__()
+        super().__init__()
         self.phase = phase
         self.base = backbone
         if cfg is None:

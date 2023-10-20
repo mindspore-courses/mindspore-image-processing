@@ -1,3 +1,5 @@
+'''训练'''
+# pylint: disable=E0401
 import os
 
 import time
