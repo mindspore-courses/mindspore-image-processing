@@ -1,3 +1,4 @@
+'''draw'''
 import numpy as np
 from numpy import ndarray
 import PIL
@@ -34,6 +35,7 @@ def draw_keypoints(img: Image,
                    draw_text: bool = False,
                    font: str = 'arial.ttf',
                    font_size: int = 10):
+    '''draw keypoints'''
     if isinstance(img, ndarray):
         img = PIL.Image.fromarray(img)
 

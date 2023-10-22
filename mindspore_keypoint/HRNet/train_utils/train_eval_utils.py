@@ -2,6 +2,7 @@
 # pylint: disable=E0401
 import math
 import time
+from typing import List
 
 import numpy as np
 
@@ -56,7 +57,7 @@ def train_one_epoch(model, optimizer, data_loader):
         return losses, logits
 
     for _, [images, targets] in enumerate(data_loader):
-        images = ops.stack([image for image in images])
+        images = ops.stack(List(image for image in images))
         losses, _ = train_step(model, mse, images, targets)
 
     return losses, optimizer.learning_rate.data.asnumpy()
@@ -71,7 +72,7 @@ def evaluate(model, data_loader, flip=False, flip_pairs=None):
     key_metric = EvalCOCOMetric(
         data_loader.dataset.coco, "keypoints", "key_results.json")
     for image, targets in data_loader:
-        images = ops.stack([img for img in image])
+        images = ops.stack(List(img for img in image))
 
         model_time = time.time()
         outputs = model(images)

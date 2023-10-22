@@ -1,12 +1,12 @@
 '''train model'''
-# pylint: disable=E0401
+# pylint: disable=E0401, W0621
 import json
 import os
 import datetime
 import numpy as np
 
 import mindspore
-from mindspore import dataset, ops, Tensor
+from mindspore import dataset, nn, Tensor
 
 import transforms
 from model import HighResolutionNet
@@ -105,7 +105,7 @@ def main(args):
                                det_json_path=args.person_det)
     val_data_loader = dataset.GeneratorDataset(val_dataset,
                                                shuffle=False,
-                                               num_workers=nw)
+                                               num_parallel_workers=nw)
     val_data_loader = val_data_loader.batch(
         batch_size=batch_size, per_batch_map=val_dataset.collate_fn)
 
@@ -117,9 +117,9 @@ def main(args):
                              lr_init=args.lr, lr_end=args.lr * 0.05, lr_max=0.05,
                              warmup_epochs=2, total_epochs=args.epochs-args.start_epoch, steps_per_epoch=batch_size))
     params = [p for p in model.get_parameters() if p.requires_grad]
-    optimizer = ops.AdamWeightDecay(params,
-                                    learning_rate=lr,
-                                    weight_decay=args.wd)
+    optimizer = nn.AdamWeightDecay(params,
+                                   learning_rate=lr,
+                                   weight_decay=args.wd)
 
     if args.resume != "":
         checkpoint = mindspore.load_checkpoint(args.resume)

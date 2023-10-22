@@ -1,12 +1,12 @@
 '''单机多卡训练，数据并行'''
+# pylint: disable=E0401, W0621
 import json
-import time
 import os
 import datetime
 import numpy as np
 
 import mindspore
-from mindspore import dataset, ops, Tensor
+from mindspore import dataset, nn, Tensor
 from mindspore.communication import get_rank, get_group_size, init
 
 import transforms
@@ -131,9 +131,9 @@ def main(args):
                              lr_init=args.lr, lr_end=args.lr * 0.05, lr_max=0.05,
                              warmup_epochs=2, total_epochs=args.epochs-args.start_epoch, steps_per_epoch=batch_size))
     params = [p for p in model.get_parameters() if p.requires_grad]
-    optimizer = ops.AdamWeightDecay(params,
-                                    learning_rate=lr,
-                                    weight_decay=args.wd)
+    optimizer = nn.AdamWeightDecay(params,
+                                   learning_rate=lr,
+                                   weight_decay=args.wd)
 
     if args.resume != "":
         checkpoint = mindspore.load_checkpoint(args.resume)
@@ -145,7 +145,6 @@ def main(args):
     val_map = []
 
     print("Start training")
-    start_time = time.time()
     for epoch in range(args.start_epoch, args.epochs):
         # train for one epoch, printing every 50 iterations
         mean_loss, lr = utils.train_one_epoch(

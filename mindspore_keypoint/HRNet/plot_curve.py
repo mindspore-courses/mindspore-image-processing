@@ -1,8 +1,11 @@
+'''plot'''
+# pylint: disable = E0401
 import datetime
 import matplotlib.pyplot as plt
 
 
 def plot_loss_and_lr(train_loss, learning_rate):
+    ''' plot loss lr'''
     try:
         x = list(range(len(train_loss)))
         fig, ax1 = plt.subplots(1, 1)
@@ -32,6 +35,7 @@ def plot_loss_and_lr(train_loss, learning_rate):
 
 
 def plot_map(mAP):
+    '''plot map'''
     try:
         x = list(range(len(mAP)))
         plt.plot(x, mAP, label='mAp')

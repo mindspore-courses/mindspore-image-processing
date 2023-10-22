@@ -1,4 +1,5 @@
 '''coco eval'''
+# pylint: disable = R0201, E0401
 import copy
 
 from PIL import Image, ImageDraw
@@ -28,6 +29,7 @@ class EvalCOCOMetric:
         self.threshold = threshold
 
     def plot_img(self, img_path, keypoints, r=3):
+        '''plot'''
         img = Image.open(img_path)
         draw = ImageDraw.Draw(img)
         for _, point in enumerate(keypoints):
@@ -36,6 +38,7 @@ class EvalCOCOMetric:
         img.show()
 
     def prepare_for_coco_keypoints(self, targets, outputs):
+        '''prepare'''
         # 遍历每个person的预测结果(注意这里不是每张，一张图片里可能有多个person)
         for target, keypoints, scores in zip(targets, outputs[0], outputs[1]):
             if len(keypoints) == 0:
@@ -70,13 +73,14 @@ class EvalCOCOMetric:
             self.results.append(res)
 
     def update(self, targets, outputs):
+        '''update'''
         if self.iou_type == "keypoints":
             self.prepare_for_coco_keypoints(targets, outputs)
         else:
             raise KeyError(f"not support iou_type: {self.iou_type}")
 
     def evaluate(self):
-        # 评估
+        '''评估'''
         # accumulate predictions from all images
         coco_true = self.coco
         coco_pre = coco_true.loadRes(self.results_file_name)

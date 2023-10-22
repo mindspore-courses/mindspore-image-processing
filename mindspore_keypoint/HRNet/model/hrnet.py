@@ -1,14 +1,15 @@
-import mindspore
+'''model'''
 import mindspore.nn as nn
 
 BN_MOMENTUM = 0.1
 
 
 class BasicBlock(nn.Cell):
+    '''BasicBlock'''
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(BasicBlock, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(
             inplanes, planes, kernel_size=3, stride=stride, padding=1, has_bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
@@ -39,10 +40,11 @@ class BasicBlock(nn.Cell):
 
 
 class Bottleneck(nn.Cell):
+    '''Bottleneck'''
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(Bottleneck, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, has_bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
@@ -80,6 +82,8 @@ class Bottleneck(nn.Cell):
 
 
 class StageModule(nn.Cell):
+    '''StageModule'''
+
     def __init__(self, input_branches, output_branches, c):
         """
         构建对应stage，即用来融合不同尺度的实现
@@ -167,6 +171,8 @@ class StageModule(nn.Cell):
 
 
 class HighResolutionNet(nn.Cell):
+    '''HighResolutionNet'''
+
     def __init__(self, base_channel: int = 32, num_joints: int = 17):
         super().__init__()
         # Stem

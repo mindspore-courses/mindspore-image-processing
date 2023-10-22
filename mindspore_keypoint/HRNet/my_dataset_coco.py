@@ -1,3 +1,5 @@
+'''dataset'''
+# pylint: disable = E0401
 import os
 import copy
 
@@ -8,6 +10,8 @@ from pycocotools.coco import COCO
 
 
 class CocoKeypoint():
+    '''CocoKeypoint'''
+
     def __init__(self,
                  root,
                  dataset="train",
@@ -99,6 +103,7 @@ class CocoKeypoint():
 
     @staticmethod
     def collate_fn(batch):
+        '''collate'''
         imgs_tuple, targets_tuple = tuple(zip(*batch))
         imgs_tensor = ops.stack(imgs_tuple)
         return imgs_tensor, targets_tuple

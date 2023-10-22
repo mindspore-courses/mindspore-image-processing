@@ -1,3 +1,5 @@
+'''transforms'''
+# pylint: disable = E0401
 import math
 import random
 from typing import Tuple
@@ -42,6 +44,7 @@ def get_max_preds(batch_heatmaps):
     assert len(batch_heatmaps.shape) == 4, 'batch_images should be 4-ndim'
 
     batch_size, num_joints, h, w = batch_heatmaps.shape
+    _ = h
     heatmaps_reshaped = batch_heatmaps.reshape(batch_size, num_joints, -1)
     maxvals, idx = ops.max(heatmaps_reshaped, axis=2)
 
@@ -128,7 +131,7 @@ def decode_keypoints(outputs, origin_hw, num_joints: int = 17):
 
 def resize_pad(img: np.ndarray, size: tuple):
     '''resize'''
-    h, w, c = img.shape
+    h, w, _ = img.shape
     src = np.array([[0, 0],       # 原坐标系中图像左上角点
                     [w - 1, 0],   # 原坐标系中图像右上角点
                     [0, h - 1]],  # 原坐标系中图像左下角点
@@ -400,7 +403,10 @@ class KeypointToHeatMap():
         self.heatmap_hw = heatmap_hw
         self.sigma = gaussian_sigma
         self.kernel_radius = self.sigma * 3
-        self.use_kps_weights = False if keypoints_weights is None else True
+        if keypoints_weights is None:
+            self.use_kps_weights = False
+        else:
+            self.use_kps_weights = True
         self.kps_weights = keypoints_weights
 
         # generate gaussian kernel(not normalized)
