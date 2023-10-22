@@ -10,6 +10,7 @@ class BasicBlock(nn.Cell):
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
         super().__init__()
+
         self.conv1 = nn.Conv2d(
             inplanes, planes, kernel_size=3, stride=stride, padding=1, has_bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
@@ -45,6 +46,7 @@ class Bottleneck(nn.Cell):
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
         super().__init__()
+
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, has_bias=False)
         self.bn1 = nn.BatchNorm2d(planes, momentum=BN_MOMENTUM)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,

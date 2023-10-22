@@ -81,6 +81,7 @@ def main(args):
     optimizer = mindspore.nn.AdamWeightDecay(
         pg, learning_rate=args.lr, weight_decay=1E-2)
 
+
     best_acc = 0.
     with SummaryRecord(log_dir="./summary_dir", network=model) as summary_record:
         for epoch in range(args.epochs):

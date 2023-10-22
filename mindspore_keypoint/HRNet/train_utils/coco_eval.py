@@ -7,10 +7,8 @@ import numpy as np
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
-
 class EvalCOCOMetric:
     '''EvalCOCOMetric'''
-
     def __init__(self,
                  coco: COCO = None,
                  iou_type: str = "keypoints",
@@ -39,6 +37,7 @@ class EvalCOCOMetric:
 
     def prepare_for_coco_keypoints(self, targets, outputs):
         '''prepare'''
+
         # 遍历每个person的预测结果(注意这里不是每张，一张图片里可能有多个person)
         for target, keypoints, scores in zip(targets, outputs[0], outputs[1]):
             if len(keypoints) == 0:
@@ -74,6 +73,7 @@ class EvalCOCOMetric:
 
     def update(self, targets, outputs):
         '''update'''
+
         if self.iou_type == "keypoints":
             self.prepare_for_coco_keypoints(targets, outputs)
         else:
