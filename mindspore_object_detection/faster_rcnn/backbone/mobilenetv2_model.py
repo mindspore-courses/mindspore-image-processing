@@ -27,7 +27,7 @@ class ConvBNReLU(nn.SequentialCell):
         padding = (kernel_size - 1) // 2
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
-        super(ConvBNReLU, self).__init__(
+        super().__init__(
             nn.Conv2d(in_channel, out_channel, kernel_size,
                       stride, padding, group=groups, has_bias=False),
             norm_layer(out_channel),
@@ -64,9 +64,11 @@ class InvertedResidual(nn.Cell):
 
     def construct(self, x):
         if self.use_shortcut:
-            return x + self.conv(x)
+            out = x + self.conv(x)
         else:
-            return self.conv(x)
+            out = self.conv(x)
+
+        return out
 
 
 class MobileNetV2(nn.Cell):

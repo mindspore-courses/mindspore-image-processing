@@ -50,6 +50,7 @@ class IntermediateLayerGetter(nn.CellDict):
         self.return_layers = orig_return_layers
 
     def construct(self, x):
+        '''construct'''
         out = OrderedDict()
         # 依次遍历模型的所有子模块，并进行正向传播，
         # 收集layer1, layer2, layer3, layer4的输出
@@ -172,7 +173,7 @@ class FeaturePyramidNetwork(nn.Cell):
             results, names = self.extra_blocks(results, x, names)
 
         # make it back an OrderedDict
-        out = OrderedDict([(k, v) for k, v in zip(names, results)])
+        out = OrderedDict(List((k, v) for k, v in zip(names, results)))
 
         return out
 
@@ -184,6 +185,7 @@ class LastLevelMaxPool(nn.Cell):
 
     def construct(self, x: List[Tensor], y: List[Tensor], names: List[str]) -> Tuple[List[Tensor], List[str]]:
         names.append("pool")
+        _ = y
         # input, kernel_size, stride, padding
         x.append(F.max_pool2d(x[-1], 1, 2, 0))
         return x, names

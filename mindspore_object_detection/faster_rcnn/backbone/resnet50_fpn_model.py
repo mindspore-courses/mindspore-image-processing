@@ -1,5 +1,6 @@
 '''model'''
 import os
+from typing import List
 
 import mindspore
 import mindspore.common.initializer as init
@@ -185,7 +186,7 @@ def resnet50_fpn_backbone(pretrain_path="",
     # freeze layers
     for name, parameter in resnet_backbone.cells_and_names():
         # 只训练不在layers_to_train列表中的层结构
-        if all([not name.startswith(layer) for layer in layers_to_train]):
+        if all(List(not name.startswith(layer) for layer in layers_to_train)):
             parameter.requires_grad_(False)
 
     if extra_blocks is None:
