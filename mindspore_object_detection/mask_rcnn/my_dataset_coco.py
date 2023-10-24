@@ -1,5 +1,5 @@
 '''dataset'''
-# pylint: disable = E0401
+# pylint: disable = E0401, R0201
 import os
 import json
 
@@ -71,6 +71,7 @@ class CocoDetection():
                       coco_targets: list,
                       w: int = None,
                       h: int = None):
+        '''parse targets'''
         assert w > 0
         assert h > 0
 

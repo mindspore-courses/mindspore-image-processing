@@ -1,4 +1,5 @@
 '''model'''
+# pylint: disable=E0401s
 from collections import OrderedDict
 from mindspore import nn
 import mindspore as ms
