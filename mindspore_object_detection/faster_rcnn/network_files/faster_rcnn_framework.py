@@ -1,9 +1,8 @@
 '''faster_rcnn'''
-import warnings
+# pylint: diable = E0401
 from collections import OrderedDict
-from typing import Tuple, List, Dict, Optional, Union
+from typing import Tuple, List, Dict, Optional
 
-import mindspore as ms
 from mindspore import nn, Tensor
 import mindspore.ops as F
 
@@ -355,4 +354,4 @@ class FasterRCNN(FasterRCNNBase):
         transform = GeneralizedRCNNTransform(
             min_size, max_size, image_mean, image_std)
 
-        super(FasterRCNN, self).__init__(backbone, rpn, roi_heads, transform)
+        super().__init__(backbone, rpn, roi_heads, transform)

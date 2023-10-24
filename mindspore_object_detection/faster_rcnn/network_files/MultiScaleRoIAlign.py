@@ -111,6 +111,7 @@ def initLevelMapper(
     canonical_level: int = 4,
     eps: float = 1e-6,
 ):
+    '''initLevelMapper'''
     return LevelMapper(k_min, k_max, canonical_scale, canonical_level, eps)
 
 
@@ -222,7 +223,7 @@ def _multiscale_roi_align(
         dtype=dtype
     )
 
-    for level, (per_level_feature, scale) in enumerate(zip(x_filtered, scales)):
+    for level, (per_level_feature, scales) in enumerate(zip(x_filtered, scales)):
         idx_in_level = ops.nonzero(levels == level)[0]
         rois_per_level = rois[idx_in_level]
 

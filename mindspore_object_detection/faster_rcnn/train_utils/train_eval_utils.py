@@ -7,7 +7,6 @@ from typing import List
 import numpy as np
 
 from train_utils import CocoEvaluator
-import transforms
 
 from mindspore import ops, value_and_grad
 
@@ -57,7 +56,7 @@ def train_one_epoch(model, optimizer, data_loader):
 
     for _, [images, targets] in enumerate(data_loader):
         images = list(image for image in images)
-        targets = [{k: v for k, v in t.items()} for t in targets]
+        targets = [dict(t.items()) for t in targets]
         losses = train_step(model, images, targets)
 
     return losses, optimizer.learning_rate.data.asnumpy()
@@ -75,7 +74,7 @@ def evaluate(model, data_loader):
         model_time = time.time()
         outputs = model(images)
 
-        outputs = [{k: v for k, v in t.items()}
+        outputs = [dict(t.items())
                    for t in outputs]
         model_time = time.time() - model_time
 

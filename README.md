@@ -1,183 +1,58 @@
 # Mindspore-image-processing
 
-# 深度学习在图像处理中的应用教程
+## Preface
 
-## 前言
+- This project is dedicated to the application of mindspore in the field of image processing, using models as classical models in CV, including image classification, key point detection, object detection, instance segmentation and semantic segmentation, as well as some other small cases of mindspore.
+- In key point detection, object detection, instance segmentation and semantic segmentation cases, stand-alone single-card and stand-alone multi-card demonstration cases are provided.
 
-- 本教程是对本人研究生期间的研究内容进行整理总结，总结的同时也希望能够帮助更多的小伙伴。后期如果有学习到新的知识也会与大家一起分享。
-- 本教程会以视频的方式进行分享，教学流程如下：  
-  1）介绍网络的结构与创新点  
-  2）使用 Pytorch 进行网络的搭建与训练  
-  3）使用 Tensorflow（内部的 keras 模块）进行网络的搭建与训练
-- 课程中所有 PPT 都放在`course_ppt`文件夹下，需要的自行下载。
+## The following is the catalog of models used by the project:
 
-## 教程目录
+### Tutorial catalog
 
-- 图像分类
+- classification
 
-  - LeNet（已完成）
+  - LeNet
+  - AlexNet
+  - VggNet
+  - GoogLeNet
+  - ResNet
+  - ResNeXt
+  - MobileNet_V1_V2
+  - MobileNet_V3
+  - ShuffleNet_V1_V2
+  - EfficientNet_V1
+  - EfficientNet_V2
+  - RepVGG
+  - Vision Transformer
+  - Swin Transformer
+  - ConvNeXt
+  - MobileViT
+- object-detection
 
-    - [Pytorch 官方 demo(Lenet)](https://www.bilibili.com/video/BV187411T7Ye)
-    - [Tensorflow2 官方 demo](https://www.bilibili.com/video/BV1n7411T7o6)
+  - Faster-RCNN/FPN
+  - SSD/RetinaNet
+  - YOLO Series
+  - FCOS
+- segmentation
 
-  - AlexNet（已完成）
+  - FCN
+  - DeepLabV3
+  - LR-ASPP
+  - U-Net
+  - U2Net
+- segmentation
 
-    - [AlexNet 网络讲解](https://www.bilibili.com/video/BV1p7411T7Pc)
-    - [Pytorch 搭建 AlexNet](https://www.bilibili.com/video/BV1W7411T7qc)
-    - [Tensorflow2 搭建 Alexnet](https://www.bilibili.com/video/BV1s7411T7vs)
+  - Mask R-CNN
+- keypoint
 
-  - VggNet（已完成）
-
-    - [VggNet 网络讲解](https://www.bilibili.com/video/BV1q7411T7Y6)
-    - [Pytorch 搭建 VGG 网络](https://www.bilibili.com/video/BV1i7411T7ZN)
-    - [Tensorflow2 搭建 VGG 网络](https://www.bilibili.com/video/BV1q7411T76b)
-
-  - GoogLeNet（已完成）
-
-    - [GoogLeNet 网络讲解](https://www.bilibili.com/video/BV1z7411T7ie)
-    - [Pytorch 搭建 GoogLeNet 网络](https://www.bilibili.com/video/BV1r7411T7M5)
-    - [Tensorflow2 搭建 GoogLeNet 网络](https://www.bilibili.com/video/BV1a7411T7Ht)
-
-  - ResNet（已完成）
-
-    - [ResNet 网络讲解](https://www.bilibili.com/video/BV1T7411T7wa)
-    - [Pytorch 搭建 ResNet 网络](https://www.bilibili.com/video/BV14E411H7Uw)
-    - [Tensorflow2 搭建 ResNet 网络](https://www.bilibili.com/video/BV1WE41177Ya)
-
-  - ResNeXt (已完成)
-
-    - [ResNeXt 网络讲解](https://www.bilibili.com/video/BV1Ap4y1p71v/)
-    - [Pytorch 搭建 ResNeXt 网络](https://www.bilibili.com/video/BV1rX4y1N7tE)
-
-  - MobileNet_V1_V2（已完成）
-
-    - [MobileNet_V1_V2 网络讲解](https://www.bilibili.com/video/BV1yE411p7L7)
-    - [Pytorch 搭建 MobileNetV2 网络](https://www.bilibili.com/video/BV1qE411T7qZ)
-    - [Tensorflow2 搭建 MobileNetV2 网络](https://www.bilibili.com/video/BV1NE411K7tX)
-
-  - MobileNet_V3（已完成）
-
-    - [MobileNet_V3 网络讲解](https://www.bilibili.com/video/BV1GK4y1p7uE)
-    - [Pytorch 搭建 MobileNetV3 网络](https://www.bilibili.com/video/BV1zT4y1P7pd)
-    - [Tensorflow2 搭建 MobileNetV3 网络](https://www.bilibili.com/video/BV1KA411g7wX)
-
-  - ShuffleNet_V1_V2 (已完成)
-
-    - [ShuffleNet_V1_V2 网络讲解](https://www.bilibili.com/video/BV15y4y1Y7SY)
-    - [使用 Pytorch 搭建 ShuffleNetV2](https://www.bilibili.com/video/BV1dh411r76X)
-    - [使用 Tensorflow2 搭建 ShuffleNetV2](https://www.bilibili.com/video/BV1kr4y1N7bh)
-
-  - EfficientNet_V1（已完成）
-
-    - [EfficientNet 网络讲解](https://www.bilibili.com/video/BV1XK4y1U7PX)
-    - [使用 Pytorch 搭建 EfficientNet](https://www.bilibili.com/video/BV19z4y1179h/)
-    - [使用 Tensorflow2 搭建 EfficientNet](https://www.bilibili.com/video/BV1PK4y1S7Jf)
-
-  - EfficientNet_V2 (已完成)
-
-    - [EfficientNetV2 网络讲解](https://b23.tv/NDR7Ug)
-    - [使用 Pytorch 搭建 EfficientNetV2](https://b23.tv/M4hagB)
-    - [使用 Tensorflow 搭建 EfficientNetV2](https://b23.tv/KUPbdr)
-
-  - RepVGG（已完成）
-
-    - [RepVGG 网络讲解](https://www.bilibili.com/video/BV15f4y1o7QR)
-
-  - Vision Transformer(已完成)
-
-    - [Multi-Head Attention 讲解](https://b23.tv/gucpvt)
-    - [Vision Transformer 网络讲解](https://www.bilibili.com/video/BV1Jh411Y7WQ)
-    - [使用 Pytorch 搭建 Vision Transformer](https://b23.tv/TT4VBM)
-    - [使用 tensorflow2 搭建 Vision Transformer](https://www.bilibili.com/video/BV1q64y1X7GY)
-
-  - Swin Transformer(已完成)
-
-    - [Swin Transformer 网络讲解](https://www.bilibili.com/video/BV1pL4y1v7jC)
-    - [使用 Pytorch 搭建 Swin Transformer](https://b23.tv/vZnpJf)
-    - [使用 Tensorflow2 搭建 Swin Transformer](https://b23.tv/UHLMSF)
-
-  - ConvNeXt(已完成)
-
-    - [ConvNeXt 网络讲解](https://www.bilibili.com/video/BV1SS4y157fu)
-    - [使用 Pytorch 搭建 ConvNeXt](https://b23.tv/gzpCv5z)
-    - [使用 Tensorflow2 搭建 ConvNeXt](https://b23.tv/zikVoch)
-
-  - MobileViT(已完成)
-    - [MobileViT 网络讲解](https://www.bilibili.com/video/BV1TG41137sb)
-    - [使用 Pytorch 搭建 MobileViT](https://www.bilibili.com/video/BV1ae411L7Ki)
-
-- 目标检测
-
-  - Faster-RCNN/FPN（已完成）
-
-    - [Faster-RCNN 网络讲解](https://www.bilibili.com/video/BV1af4y1m7iL)
-    - [FPN 网络讲解](https://b23.tv/Qhn6xA)
-    - [Faster-RCNN 源码解析(Pytorch)](https://www.bilibili.com/video/BV1of4y1m7nj)
-
-  - SSD/RetinaNet (已完成)
-
-    - [SSD 网络讲解](https://www.bilibili.com/video/BV1fT4y1L7Gi)
-    - [RetinaNet 网络讲解](https://b23.tv/ZYCfd2)
-    - [SSD 源码解析(Pytorch)](https://www.bilibili.com/video/BV1vK411H771)
-
-  - YOLO Series (已完成)
-
-    - [YOLO 系列网络讲解(V1~V3)](https://www.bilibili.com/video/BV1yi4y1g7ro)
-    - [YOLOv3 SPP 源码解析(Pytorch 版)](https://www.bilibili.com/video/BV1t54y1C7ra)
-    - [YOLOV4 网络讲解](https://b23.tv/WLptQ7Q)
-    - [YOLOV5 网络讲解](https://www.bilibili.com/video/BV1T3411p7zR)
-    - [YOLOX 网络讲解](https://www.bilibili.com/video/BV1JW4y1k76c)
-
-  - FCOS（已完成）
-    - [FCOS 网络讲解](https://www.bilibili.com/video/BV1G5411X7jw)
-
-- 语义分割
-
-  - FCN (已完成)
-
-    - [FCN 网络讲解](https://www.bilibili.com/video/BV1J3411C7zd)
-    - [FCN 源码解析(Pytorch 版)](https://www.bilibili.com/video/BV19q4y1971Q)
-
-  - DeepLabV3 (已完成)
-
-    - [DeepLabV1 网络讲解](https://www.bilibili.com/video/BV1SU4y1N7Ao)
-    - [DeepLabV2 网络讲解](https://www.bilibili.com/video/BV1gP4y1G7TC)
-    - [DeepLabV3 网络讲解](https://www.bilibili.com/video/BV1Jb4y1q7j7)
-    - [DeepLabV3 源码解析(Pytorch 版)](https://www.bilibili.com/video/BV1TD4y1c7Wx)
-
-  - LR-ASPP (已完成)
-
-    - [LR-ASPP 网络讲解](https://www.bilibili.com/video/BV1LS4y1M76E)
-    - [LR-ASPP 源码解析(Pytorch 版)](https://www.bilibili.com/video/bv13D4y1F7ML)
-
-  - U-Net (已完成)
-
-    - [U-Net 网络讲解](https://www.bilibili.com/video/BV1Vq4y127fB/)
-    - [U-Net 源码解析(Pytorch 版)](https://b23.tv/PCJJmqN)
-
-  - U2Net (已完成)
-
-    - [U2Net 网络讲解](https://www.bilibili.com/video/BV1yB4y1z7mj)
-    - [U2Net 源码解析(Pytorch 版)](https://www.bilibili.com/video/BV1Kt4y137iS)
-
-  - SegFormer(规划中)
-
-- 实例分割
-
-  - Mask R-CNN（已完成）
-    - [Mask R-CNN 网络讲解](https://www.bilibili.com/video/BV1ZY411774T)
-    - [Mask R-CNN 源码解析(Pytorch 版)](https://www.bilibili.com/video/BV1hY411E7wD)
-
-- 关键点检测
-  - HRNet（已完成）
-    - [HRNet 网络讲解](https://www.bilibili.com/video/BV1bB4y1y7qP)
-    - [HRNet 源码解析(Pytorch 版)](https://www.bilibili.com/video/BV1ar4y157JM)
+  - HRNet
 
 ---
 
-## 所需环境
+## Required environment
 
-- Anaconda3（建议使用）
+- Anaconda3
 - python3.8
 - VSCode (IDE)
 - mindspore2.0
+- requirements.txt

@@ -1,4 +1,5 @@
 '''roi'''
+# py;int: disable=E0401, R0201
 from typing import Optional, List, Dict, Tuple
 
 import mindspore as ms
@@ -41,7 +42,7 @@ def fastrcnn_loss(class_logits, box_regression, labels, regression_targets):
     labels_pos = labels[sampled_pos_inds_subset]
 
     # shape=[num_proposal, num_classes]
-    N, num_classes = class_logits.shape
+    N, _ = class_logits.shape
     box_regression = box_regression.reshape(N, -1, 4)
 
     # 计算边界框损失信息
@@ -57,6 +58,7 @@ def fastrcnn_loss(class_logits, box_regression, labels, regression_targets):
 
 
 class RoIHeads(nn.Cell):
+    '''RoIHeads'''
     __annotations__ = {
         'box_coder': det_utils.BoxCoder,
         'proposal_matcher': det_utils.Matcher,
@@ -193,8 +195,8 @@ class RoIHeads(nn.Cell):
     def check_targets(self, targets):
         '''ckeck'''
         assert targets is not None
-        assert all(["boxes" in t for t in targets])
-        assert all(["labels" in t for t in targets])
+        assert all("boxes" in t for t in targets)
+        assert all("labels" in t for t in targets)
 
     def select_training_samples(self,
                                 proposals,  # type: List[Tensor]

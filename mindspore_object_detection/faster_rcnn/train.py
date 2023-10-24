@@ -83,7 +83,7 @@ def main(args):
 
     train_data_loader = dataset.GeneratorDataset(train_dataset,
                                                  shuffle=True,
-                                                 num_workers=nw)
+                                                 num_parallel_workers=nw)
     train_data_loader = train_data_loader.batch(
         batch_size=batch_size, per_batch_map=train_dataset.collate_fn)
 
@@ -93,7 +93,7 @@ def main(args):
         VOC_root, "2012", data_transform["val"], "val.txt")
     val_data_set_loader = dataset.GeneratorDataset(val_dataset,
                                                    shuffle=False,
-                                                   num_workers=nw)
+                                                   num_parallel_workers=nw)
     val_data_set_loader = val_data_set_loader.batch(
         batch_size=1, per_batch_map=val_dataset.collate_fn)
 

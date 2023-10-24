@@ -1,9 +1,10 @@
 '''eval'''
+# pylint:disable=E0401,R0201
 import json
 from collections import defaultdict
-
-import numpy as np
 import copy
+import numpy as np
+
 import mindspore.ops as ops
 from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
@@ -11,6 +12,8 @@ import pycocotools.mask as mask_util
 
 
 class CocoEvaluator():
+    '''CocoEvaluator'''
+
     def __init__(self, coco_gt, iou_types):
         assert isinstance(iou_types, (list, tuple))
         coco_gt = copy.deepcopy(coco_gt)
@@ -54,13 +57,15 @@ class CocoEvaluator():
     def prepare(self, predictions, iou_type):
         '''prepare'''
         if iou_type == "bbox":
-            return self.prepare_for_coco_detection(predictions)
+            out = self.prepare_for_coco_detection(predictions)
         elif iou_type == "segm":
-            return self.prepare_for_coco_segmentation(predictions)
+            out = self.prepare_for_coco_segmentation(predictions)
         elif iou_type == "keypoints":
-            return self.prepare_for_coco_keypoint(predictions)
+            out = self.prepare_for_coco_keypoint(predictions)
         else:
             raise ValueError("Unknown iou type {}".format(iou_type))
+
+        return out
 
     def prepare_for_coco_detection(self, predictions):
         '''coco_detection'''
@@ -159,6 +164,7 @@ def convert_to_xywh(boxes):
 
 
 def create_common_coco_eval(coco_eval, img_ids, eval_imgs):
+    '''create_common_coco_eval'''
     img_ids = list(img_ids)
     eval_imgs = list(eval_imgs.flatten())
 
@@ -176,7 +182,7 @@ def create_common_coco_eval(coco_eval, img_ids, eval_imgs):
 # so that we could avoid copy-pasting those two functions
 
 def createIndex(self):
-    # create index
+    '''create index'''
     # print('creating index...')
     anns, cats, imgs = {}, {}, {}
     imgToAnns, catToImgs = defaultdict(list), defaultdict(list)
@@ -217,55 +223,55 @@ def loadRes(self, resFile):
     :return: res (obj)         : result api object
     """
     res = COCO()
-    res.dataset['images'] = [img for img in self.dataset['images']]
+    res.dataset['images'] = list(img for img in self.dataset['images'])
 
     # print('Loading and preparing results...')
     # tic = time.time()
     if isinstance(resFile, str):
         anns = json.load(open(resFile))
-    elif type(resFile) == np.ndarray:
+    elif isinstance(resFile, np.ndarray):
         anns = self.loadNumpyAnnotations(resFile)
     else:
         anns = resFile
-    assert type(anns) == list, 'results in not an array of objects'
+    assert isinstance(anns, list), 'results in not an array of objects'
     annsImgIds = [ann['image_id'] for ann in anns]
-    assert set(annsImgIds) == (set(annsImgIds) & set(self.getImgIds())), \
+    assert {annsImgIds} == ({annsImgIds} & {self.getImgIds()}), \
         'Results do not correspond to current coco set'
     if 'caption' in anns[0]:
-        imgIds = set([img['id'] for img in res.dataset['images']]
-                     ) & set([ann['image_id'] for ann in anns])
+        imgIds = {[img['id'] for img in res.dataset['images']]
+                  } & {[ann['image_id'] for ann in anns]}
         res.dataset['images'] = [
             img for img in res.dataset['images'] if img['id'] in imgIds]
-        for id, ann in enumerate(anns):
-            ann['id'] = id + 1
+        for i, ann in enumerate(anns):
+            ann['id'] = i + 1
     elif 'bbox' in anns[0] and not anns[0]['bbox'] == []:
         res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
-        for id, ann in enumerate(anns):
+        for i, ann in enumerate(anns):
             bb = ann['bbox']
             x1, x2, y1, y2 = [bb[0], bb[0] + bb[2], bb[1], bb[1] + bb[3]]
             if 'segmentation' not in ann:
                 ann['segmentation'] = [[x1, y1, x1, y2, x2, y2, x2, y1]]
             ann['area'] = bb[2] * bb[3]
-            ann['id'] = id + 1
+            ann['id'] = i + 1
             ann['iscrowd'] = 0
     elif 'segmentation' in anns[0]:
         res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
-        for id, ann in enumerate(anns):
+        for i, ann in enumerate(anns):
             # now only support compressed RLE format as segmentation results
             ann['area'] = maskUtils.area(ann['segmentation'])
             if 'bbox' not in ann:
                 ann['bbox'] = maskUtils.toBbox(ann['segmentation'])
-            ann['id'] = id + 1
+            ann['id'] = i + 1
             ann['iscrowd'] = 0
     elif 'keypoints' in anns[0]:
         res.dataset['categories'] = copy.deepcopy(self.dataset['categories'])
-        for id, ann in enumerate(anns):
+        for i, ann in enumerate(anns):
             s = ann['keypoints']
             x = s[0::3]
             y = s[1::3]
             x1, x2, y1, y2 = np.min(x), np.max(x), np.min(y), np.max(y)
             ann['area'] = (x2 - x1) * (y2 - y1)
-            ann['id'] = id + 1
+            ann['id'] = i + 1
             ann['bbox'] = [x1, y1, x2 - x1, y2 - y1]
     # print('DONE (t={:0.2f}s)'.format(time.time()- tic))
 

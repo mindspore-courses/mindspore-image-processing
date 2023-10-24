@@ -22,6 +22,6 @@ class ImageList():
         self.image_sizes = image_sizes
 
     def to(self):
-        # type: (Device) -> ImageList # noqa
+        '''to'''
         cast_tensor = self.tensors
         return ImageList(cast_tensor, self.image_sizes)

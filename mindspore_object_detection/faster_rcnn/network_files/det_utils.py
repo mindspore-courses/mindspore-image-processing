@@ -1,4 +1,5 @@
 '''utils'''
+# pylint: disable =R0201
 import math
 from typing import List, Tuple
 import mindspore as ms
@@ -273,6 +274,7 @@ class BoxCoder():
 
 
 class Matcher():
+    '''Matcher'''
     BELOW_LOW_THRESHOLD = -1
     BETWEEN_THRESHOLDS = -2
 
@@ -322,7 +324,7 @@ class Matcher():
                 raise ValueError(
                     "No ground-truth boxes available for one of the images "
                     "during training")
-            else:
+            if match_quality_matrix.shape[0] != 0:
                 raise ValueError(
                     "No proposal boxes available for one of the images "
                     "during training")
@@ -399,12 +401,12 @@ class Matcher():
         matches[pre_inds_to_update] = all_matches[pre_inds_to_update]
 
 
-def smooth_l1_loss(input, target, beta: float = 1. / 9, size_average: bool = True):
+def smooth_l1_loss(sinput, target, beta: float = 1. / 9, size_average: bool = True):
     """
     very similar to the smooth_l1_loss from pytorch, but with
     the extra beta parameter
     """
-    n = ops.abs(input - target)
+    n = ops.abs(sinput - target)
     # cond = n < beta
     cond = ops.lt(n, beta)
     loss = ops.where(cond, 0.5 * n ** 2 / beta, n - 0.5 * beta)

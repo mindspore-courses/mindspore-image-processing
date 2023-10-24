@@ -1,4 +1,5 @@
 '''transform'''
+# pylint: disable =R0201
 import math
 from typing import List, Tuple, Dict, Optional
 
@@ -229,7 +230,7 @@ class GeneralizedRCNNTransform(nn.Cell):
                   targets=None  # type: Optional[List[Dict[str, Tensor]]]
                   ):
         # type: (...) -> Tuple[ImageList, Optional[List[Dict[str, Tensor]]]]
-        images = [img for img in images]
+        images = List(img for img in images)
         for _, i in enumerate(images):
             image = images[i]
             target_index = targets[i] if targets is not None else None

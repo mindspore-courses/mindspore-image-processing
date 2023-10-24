@@ -1,8 +1,8 @@
 '''dataset'''
-import numpy as np
+# pylint: disable = E0401
+import json
 import os
 import mindspore
-import json
 from PIL import Image
 from lxml import etree
 
@@ -119,7 +119,7 @@ class VOCDataSet():
         return image, target
 
     def get_height_and_width(self, idx):
-        # read xml
+        '''read xml'''
         xml_path = self.xml_list[idx]
         with open(xml_path) as fid:
             xml_str = fid.read()
@@ -203,4 +203,5 @@ class VOCDataSet():
 
     @staticmethod
     def collate_fn(batch):
+        '''collate_fn'''
         return tuple(zip(*batch))

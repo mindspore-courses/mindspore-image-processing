@@ -1,4 +1,5 @@
 '''rpn'''
+# pylint: disable=R0201, E0401, E1120
 from typing import List, Optional, Dict, Tuple
 
 import mindspore as ms
@@ -126,15 +127,14 @@ class AnchorsGenerator(nn.Cell):
         for size, stride, base_anchors in zip(grid_sizes, strides, cell_anchors):
             grid_height, grid_width = size
             stride_height, stride_width = stride
-            device = base_anchors.device
 
             # For output anchor, compute [x_center, y_center, x_center, y_center]
             # shape: [grid_width] 对应原图上的x坐标(列)
             shifts_x = F.arange(
-                0, grid_width, dtype=ms.float32, device=device) * stride_width
+                0, grid_width, dtype=ms.float32) * stride_width
             # shape: [grid_height] 对应原图上的y坐标(行)
             shifts_y = F.arange(
-                0, grid_height, dtype=ms.float32, device=device) * stride_height
+                0, grid_height, dtype=ms.float32) * stride_height
 
             # 计算预测特征矩阵上每个点对应原图上的坐标(anchors模板的坐标偏移量)
             # torch.meshgrid函数分别传入行坐标和列坐标，生成网格行坐标矩阵和网格列坐标矩阵
@@ -169,7 +169,7 @@ class AnchorsGenerator(nn.Cell):
     def construct(self, image_list, feature_maps):
         # type: (ImageList, List[Tensor]) -> List[Tensor]
         # 获取每个预测特征层的尺寸(height, width)
-        grid_sizes = list([feature_map.shape[-2:]
+        grid_sizes = List([feature_map.shape[-2:]
                           for feature_map in feature_maps])
 
         # 获取输入图像的height和width
@@ -191,7 +191,7 @@ class AnchorsGenerator(nn.Cell):
         anchors_over_all_feature_maps = self.cached_grid_anchors(
             grid_sizes, strides)
 
-        anchors = List[List[Tensor]]
+        anchors = List(List[Tensor])
         # 遍历一个batch中的每张图像
         for _ in enumerate(image_list.image_sizes):
             anchors_in_image = []

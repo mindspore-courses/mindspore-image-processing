@@ -1,7 +1,10 @@
+'''coco_utils'''
+# pylint: disable=E0401
 from pycocotools.coco import COCO
 
 
 def convert_to_coco_api(ds):
+    '''convert_to_coco_api'''
     coco_ds = COCO()
     # annotation IDs need to start at 1, not 0
     ann_id = 1
