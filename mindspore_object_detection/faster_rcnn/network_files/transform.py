@@ -1,5 +1,5 @@
 '''transform'''
-# pylint: disable =R0201
+# pylint: disable =R0201, E0401
 import math
 from typing import List, Tuple, Dict, Optional
 
@@ -101,7 +101,7 @@ class GeneralizedRCNNTransform(nn.Cell):
             # 指定输入图片的最小边长,注意是self.min_size不是min_size
             size = float(self.torch_choice(self.min_size))
         else:
-            # FIXME assume for now that testing uses the largest scale
+            # assume for now that testing uses the largest scale
             # 指定输入图片的最小边长,注意是self.min_size不是min_size
             size = float(self.min_size[-1])
 

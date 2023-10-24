@@ -1,5 +1,5 @@
 '''roi'''
-# py;int: disable=E0401, R0201
+# pylint: disable=E0401, R0201
 from typing import Optional, List, Dict, Tuple
 
 import mindspore as ms

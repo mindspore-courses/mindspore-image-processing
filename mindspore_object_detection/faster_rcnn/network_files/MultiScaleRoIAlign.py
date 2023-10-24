@@ -223,12 +223,12 @@ def _multiscale_roi_align(
         dtype=dtype
     )
 
-    for level, (per_level_feature, scales) in enumerate(zip(x_filtered, scales)):
+    for level, (per_level_feature, scale) in enumerate(zip(x_filtered, scales)):
         idx_in_level = ops.nonzero(levels == level)[0]
         rois_per_level = rois[idx_in_level]
 
         roi_align = ROIAlign(output_size[0], output_size[1],
-                             scales, sample_num=sampling_ratio)
+                             scale, sample_num=sampling_ratio)
         result_idx_in_level = roi_align(
             per_level_feature,
             rois_per_level
