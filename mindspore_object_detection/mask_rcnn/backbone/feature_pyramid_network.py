@@ -1,4 +1,4 @@
-'''model'''
+'''backbone'''
 from collections import OrderedDict
 from typing import Tuple, List, Dict
 
@@ -60,6 +60,59 @@ class IntermediateLayerGetter(nn.CellDict):
                 out_name = self.return_layers[name]
                 out[out_name] = x
         return out
+
+
+class BackboneWithFPN(nn.Cell):
+    """
+    Adds a FPN on top of a model.
+    Internally, it uses torchvision.models._utils.IntermediateLayerGetter to
+    extract a submodel that returns the feature maps specified in return_layers.
+    The same limitations of IntermediatLayerGetter apply here.
+    Arguments:
+        backbone (nn.Module)
+        return_layers (Dict[name, new_name]): a dict containing the names
+            of the modules for which the activations will be returned as
+            the key of the dict, and the value of the dict is the name
+            of the returned activation (which the user can specify).
+        in_channels_list (List[int]): number of channels for each feature map
+            that is returned, in the order they are present in the OrderedDict
+        out_channels (int): number of channels in the FPN.
+        extra_blocks: ExtraFPNBlock
+    Attributes:
+        out_channels (int): the number of channels in the FPN
+    """
+
+    def __init__(self,
+                 backbone: nn.Cell,
+                 return_layers=None,
+                 in_channels_list=None,
+                 out_channels=256,
+                 extra_blocks=None,
+                 re_getter=True):
+        super().__init__()
+
+        if extra_blocks is None:
+            extra_blocks = LastLevelMaxPool()
+
+        if re_getter is True:
+            assert return_layers is not None
+            self.body = IntermediateLayerGetter(
+                backbone, return_layers=return_layers)
+        else:
+            self.body = backbone
+
+        self.fpn = FeaturePyramidNetwork(
+            in_channels_list=in_channels_list,
+            out_channels=out_channels,
+            extra_blocks=extra_blocks,
+        )
+
+        self.out_channels = out_channels
+
+    def construct(self, x):
+        x = self.body(x)
+        x = self.fpn(x)
+        return x
 
 
 class FeaturePyramidNetwork(nn.Cell):
@@ -189,56 +242,3 @@ class LastLevelMaxPool(nn.Cell):
         # input, kernel_size, stride, padding
         x.append(F.max_pool2d(x[-1], 1, 2, 0))
         return x, names
-
-
-class BackboneWithFPN(nn.Cell):
-    """
-    Adds a FPN on top of a model.
-    Internally, it uses torchvision.models._utils.IntermediateLayerGetter to
-    extract a submodel that returns the feature maps specified in return_layers.
-    The same limitations of IntermediatLayerGetter apply here.
-    Arguments:
-        backbone (nn.Module)
-        return_layers (Dict[name, new_name]): a dict containing the names
-            of the modules for which the activations will be returned as
-            the key of the dict, and the value of the dict is the name
-            of the returned activation (which the user can specify).
-        in_channels_list (List[int]): number of channels for each feature map
-            that is returned, in the order they are present in the OrderedDict
-        out_channels (int): number of channels in the FPN.
-        extra_blocks: ExtraFPNBlock
-    Attributes:
-        out_channels (int): the number of channels in the FPN
-    """
-
-    def __init__(self,
-                 backbone: nn.Cell,
-                 return_layers=None,
-                 in_channels_list=None,
-                 out_channels=256,
-                 extra_blocks=None,
-                 re_getter=True):
-        super().__init__()
-
-        if extra_blocks is None:
-            extra_blocks = LastLevelMaxPool()
-
-        if re_getter is True:
-            assert return_layers is not None
-            self.body = IntermediateLayerGetter(
-                backbone, return_layers=return_layers)
-        else:
-            self.body = backbone
-
-        self.fpn = FeaturePyramidNetwork(
-            in_channels_list=in_channels_list,
-            out_channels=out_channels,
-            extra_blocks=extra_blocks,
-        )
-
-        self.out_channels = out_channels
-
-    def construct(self, x):
-        x = self.body(x)
-        x = self.fpn(x)
-        return x

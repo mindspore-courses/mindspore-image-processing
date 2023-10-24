@@ -7,8 +7,10 @@ import numpy as np
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
+
 class EvalCOCOMetric:
     '''EvalCOCOMetric'''
+
     def __init__(self,
                  coco: COCO = None,
                  iou_type: str = "keypoints",
