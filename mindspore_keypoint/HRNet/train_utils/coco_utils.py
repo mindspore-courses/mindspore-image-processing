@@ -1,3 +1,5 @@
+'''coco_utils'''
+# pylint: disable=E0401
 import mindspore
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
@@ -37,6 +39,7 @@ def coco_remove_images_without_annotations(dataset, ids):
 
 
 def convert_coco_poly_mask(segmentations, height, width):
+    '''coco_mask'''
     masks = []
     for polygons in segmentations:
         rles = coco_mask.frPyObjects(polygons, height, width)
@@ -55,6 +58,7 @@ def convert_coco_poly_mask(segmentations, height, width):
 
 
 def convert_to_coco_api(self):
+    '''convert'''
     coco_ds = COCO()
     ann_id = 1
     dataset = {"images": [], "categories": [], "annotations": []}
