@@ -63,7 +63,7 @@ class MultiHeadAttention(nn.Cell):
             b_sz, n_patches, 3, self.num_heads, -1)
 
         # [N, P, 3, h, c] -> [N, h, 3, P, C]
-        qkv = qkv.transpose(1, 3).contiguous()
+        qkv = qkv.transpose(1, 3)
 
         # [N, h, 3, P, C] -> [N, h, P, C] x 3
         query, key, value = qkv[:, :, 0], qkv[:, :, 1], qkv[:, :, 2]

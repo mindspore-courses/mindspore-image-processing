@@ -80,7 +80,7 @@ def convert_to_coco_api(self):
         if "masks" in targets:
             masks = targets["masks"]
             # make masks Fortran contiguous for coco_mask
-            masks = masks.permute(0, 2, 1).contiguous().permute(0, 2, 1)
+            masks = masks.permute(0, 2, 1).permute(0, 2, 1)
         num_objs = len(bboxes)
         for i in range(num_objs):
             ann = {"image_id": img_id,
