@@ -7,35 +7,20 @@ import mindspore as ms
 from PIL import Image
 import matplotlib.pyplot as plt
 
-from mindspore import dataset
-from network_files import FasterRCNN, FastRCNNPredictor, AnchorsGenerator
-from backbone import resnet50_fpn_backbone, MobileNetV2
+from mindspore import dataset, nn
+from network_files import RetinaNet
+from backbone import resnet50_fpn_backbone, LastLevelP6P7
 from draw_box_utils import draw_objs
 
 
 def create_model(num_classes):
-    '''create model'''
-    # mobileNetv2+faster_RCNN
-    # backbone = MobileNetV2().features
-    # backbone.out_channels = 1280
-    #
-    # anchor_generator = AnchorsGenerator(sizes=((32, 64, 128, 256, 512),),
-    #                                     aspect_ratios=((0.5, 1.0, 2.0),))
-    #
-    # roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
-    #                                                 output_size=[7, 7],
-    #                                                 sampling_ratio=2)
-    #
-    # model = FasterRCNN(backbone=backbone,
-    #                    num_classes=num_classes,
-    #                    rpn_anchor_generator=anchor_generator,
-    #                    box_roi_pool=roi_pooler)
-
-    # resNet50+fpn+faster_RCNN
+    '''creat model'''
+    # resNet50+fpn+retinanet
     # 注意，这里的norm_layer要和训练脚本中保持一致
-    backbone = resnet50_fpn_backbone(norm_layer=ms.nn.BatchNorm2d)
-    model = FasterRCNN(backbone=backbone,
-                       num_classes=num_classes, rpn_score_thresh=0.5)
+    backbone = resnet50_fpn_backbone(norm_layer=nn.BatchNorm2d,
+                                     returned_layers=[2, 3, 4],
+                                     extra_blocks=LastLevelP6P7(256, 256))
+    model = RetinaNet(backbone, num_classes)
 
     return model
 
@@ -45,10 +30,11 @@ def main():
     ms.set_context(device_target="GPU")
 
     # create model
-    model = create_model(num_classes=21)
+    # 注意：不包含背景
+    model = create_model(num_classes=20)
 
     # load train weights
-    weights_path = "./save_weights/model.pth"
+    weights_path = "./save_weights/model.ckpt"
     assert os.path.exists(
         weights_path), "{} file dose not exist.".format(weights_path)
     weights_dict = ms.load_checkpoint(weights_path)
@@ -73,7 +59,6 @@ def main():
     img = ms.ops.unsqueeze(img, dim=0)
 
     model.set_train(False)  # 进入验证模式
-
     # init
     img_height, img_width = img.shape[-2:]
     init_img = ms.ops.zeros((1, 3, img_height, img_width))
