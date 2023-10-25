@@ -1,4 +1,5 @@
 '''test'''
+# pylint: disable=E0401
 import os
 import json
 

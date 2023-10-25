@@ -1,4 +1,5 @@
 '''transform'''
+# pylint: disable=E0401
 import random
 
 from mindspore import Tensor, dataset

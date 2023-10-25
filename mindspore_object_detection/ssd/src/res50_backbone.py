@@ -49,7 +49,7 @@ class ResNet(nn.Cell):
     '''resnet'''
 
     def __init__(self, block, blocks_num, num_classes=1000, include_top=True):
-        super(ResNet, self).__init__()
+        super().__init__()
         self.include_top = include_top
         self.in_channel = 64
 

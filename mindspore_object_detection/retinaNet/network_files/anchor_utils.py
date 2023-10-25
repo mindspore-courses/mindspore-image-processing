@@ -1,4 +1,5 @@
 '''anchor'''
+# pylint:disable=E0401, R0201
 from typing import List, Optional, Dict
 
 import mindspore as ms
@@ -162,7 +163,7 @@ class AnchorsGenerator(nn.Cell):
         # 获取输入图像的height和width
         image_size = image_list.tensors.shape[-2:]
 
-        # 获取变量类型和设备类型
+        # 获取变量类型
         dtype = feature_maps[0].dtype
 
         # one step in feature map equate n pixel stride in origin image

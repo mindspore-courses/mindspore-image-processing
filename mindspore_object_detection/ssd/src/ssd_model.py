@@ -1,4 +1,5 @@
 '''ssd'''
+# pylint: disable=E0401
 from typing import List
 import mindspore as ms
 from mindspore import nn, Tensor, ops

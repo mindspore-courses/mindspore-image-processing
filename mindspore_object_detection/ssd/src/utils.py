@@ -1,4 +1,5 @@
 '''utils'''
+# pylint: disable=R0201
 from math import sqrt
 import itertools
 from typing import Tuple, List
@@ -165,6 +166,7 @@ class Encoder():
         return bboxes_in, ops.softmax(scores_in, axis=-1)
 
     def decode_batch(self, bboxes_in, scores_in, criteria=0.45, max_output=200):
+        '''decode'''
         # 将box格式从xywh转换回ltrb（方便后面非极大值抑制时求iou）, 将预测目标score通过softmax处理
         bboxes, probs = self.scale_back_batch(bboxes_in, scores_in)
 
@@ -264,7 +266,7 @@ class Encoder():
                 continue
 
             # 按照分数从小到大排序
-            score_sorted, score_idx_sorted = score.sort(dim=0)
+            _, score_idx_sorted = score.sort(dim=0)
 
             # select max_output indices
             score_idx_sorted = score_idx_sorted[-max_num:]
@@ -382,10 +384,11 @@ class DefaultBoxes():
     def __call__(self, order='ltrb'):
         # 根据需求返回对应格式的default box
         if order == 'ltrb':
-            return self.dboxes_ltrb
+            output = self.dboxes_ltrb
 
         if order == 'xywh':
-            return self.dboxes
+            output = self.dboxes
+        return output
 
 
 def dboxes300_coco():

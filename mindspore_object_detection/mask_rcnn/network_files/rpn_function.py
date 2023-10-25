@@ -1,5 +1,5 @@
 '''rpn'''
-# pylint: disable=R0201, E0401, E1120
+# pylint: disable=R0201, E0401, E1120, E0611
 from typing import List, Optional, Dict, Tuple
 
 import mindspore as ms

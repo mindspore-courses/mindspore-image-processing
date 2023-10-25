@@ -398,6 +398,7 @@ class RetinaNet(nn.Cell):
         return self.head.compute_loss(targets, head_outputs, anchors, matched_idxs)
 
     def postprocess_detections(self, head_output, anchors, image_shapes):
+        '''detection'''
         # type: (Dict[str, List[Tensor]], List[List[Tensor]], List[Tuple[int, int]]) -> List[Dict[str, Tensor]]
         class_logits = head_output["cls_logits"]
         box_regression = head_output["bbox_regression"]
