@@ -120,7 +120,7 @@ def main(parser_data):
     learning_rate = []
     val_map = []
 
-    for epoch in range(args.start_epoch, args.epochs):
+    for epoch in range(parser_data.start_epoch, parser_data.epochs):
         # train for one epoch, printing every 50 iterations
         mean_loss, lr = utils.train_one_epoch(
             model, optimizer, train_data_loader)

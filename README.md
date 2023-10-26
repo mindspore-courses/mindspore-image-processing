@@ -30,9 +30,9 @@
 - object-detection
 
   - Faster-RCNN/FPN
-  - SSD/RetinaNet
-  - YOLO Series
-  - FCOS
+  - SSD
+  - Mask R-CNN
+  - RetinaNet
 - segmentation
 
   - FCN
@@ -40,9 +40,6 @@
   - LR-ASPP
   - U-Net
   - U2Net
-- segmentation
-
-  - Mask R-CNN
 - keypoint
 
   - HRNet
