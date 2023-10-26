@@ -140,15 +140,12 @@ def parse_args():
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='start epoch')
 
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
-    args = parse_args()
 
     if not os.path.exists("./save_weights"):
         os.mkdir("./save_weights")
 
-    main(args)
+    main(parse_args())

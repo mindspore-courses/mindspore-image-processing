@@ -72,16 +72,16 @@ def main(args):
     num_workers = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
     train_data_loader = dataset.GeneratorDataset(train_dataset,
                                                  shuffle=True,
-                                            num_shards=rank_size,
-                                            shard_id=rank_id,
+                                                 num_shards=rank_size,
+                                                 shard_id=rank_id,
                                                  num_parallel_workers=num_workers)
     train_data_loader = train_data_loader.batch(
         batch_size=batch_size, per_batch_map=train_dataset.collate_fn)
 
     val_data_loader = dataset.GeneratorDataset(val_dataset,
                                                shuffle=False,
-                                            num_shards=rank_size,
-                                            shard_id=rank_id,
+                                               num_shards=rank_size,
+                                               shard_id=rank_id,
                                                num_parallel_workers=num_workers)
     val_data_loader = val_data_loader.batch(
         batch_size=1, per_batch_map=val_dataset.collate_fn)
@@ -152,15 +152,12 @@ def parse_args():
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='start epoch')
 
-    args = parser.parse_args()
-
-    return args
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
-    args = parse_args()
 
     if not os.path.exists("./save_weights"):
         os.mkdir("./save_weights")
 
-    main(args)
+    main(parse_args())

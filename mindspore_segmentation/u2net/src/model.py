@@ -190,9 +190,10 @@ class U2Net(nn.Cell):
 
         if self.training:
             # do not use ops.sigmoid for amp safe
-            return [x] + side_outputs
+            out = [x] + side_outputs
         else:
-            return ops.sigmoid(x)
+            out = ops.sigmoid(x)
+        return out
 
 
 def u2net_full(out_ch: int = 1):

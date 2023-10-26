@@ -1,5 +1,5 @@
 '''transform'''
-from typing import List, Union
+import random
 import numpy as np
 
 import mindspore as ms
@@ -29,17 +29,20 @@ class Compose():
         return image, target
 
 
-class Resize():
-    '''Resize'''
+class RandomResize():
+    '''RandomResize'''
 
-    def __init__(self, size: Union[int, List[int]], resize_mask: bool = True):
-        self.size = size  # [h, w]
-        self.resize_mask = resize_mask
+    def __init__(self, min_size, max_size=None):
+        self.min_size = min_size
+        if max_size is None:
+            max_size = min_size
+        self.max_size = max_size
 
     def __call__(self, image, target):
-        image = ms.dataset.vision.Resize(self.size)(image)
-        if self.resize_mask is True:
-            target = ms.dataset.vision.Resize(self.size)(target)
+        size = random.randint(self.min_size, self.max_size)
+        # 这里size传入的是int类型，所以是将图像的最小边长缩放到size大小
+        image = ms.dataset.vision.Resize(size)(image)
+        target = ms.dataset.vision.Resize(size)(target)
         return image, target
 
 
@@ -55,6 +58,19 @@ class RandomHorizontalFlip():
         return image, target
 
 
+class RandomVerticalFlip():
+    '''RandomVerticalFlip'''
+
+    def __init__(self, flip_prob):
+        self.flip_prob = flip_prob
+
+    def __call__(self, image, target):
+        if random.random() < self.flip_prob:
+            image = ms.dataset.vision.RandomVerticalFlip()(image)
+            target = ms.dataset.vision.RandomVerticalFlip()(target)
+        return image, target
+
+
 class RandomCrop():
     '''randomcrop'''
 
@@ -66,6 +82,18 @@ class RandomCrop():
         target = pad_if_smaller(target, self.size, fill=255)
         image = ms.dataset.vision.RandomCrop(self.size)(image)
         target = ms.dataset.vision.RandomCrop(self.size)(target)
+        return image, target
+
+
+class CenterCrop():
+    '''CenterCrop'''
+
+    def __init__(self, size):
+        self.size = size
+
+    def __call__(self, image, target):
+        image = ms.dataset.vision.CenterCrop(self.size)(image)
+        target = ms.dataset.vision.CenterCrop(self.size)(target)
         return image, target
 
 
