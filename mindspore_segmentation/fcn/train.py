@@ -8,7 +8,7 @@ import datetime
 import mindspore as ms
 from mindspore import dataset, nn, Tensor
 
-from src import deeplabv3_resnet50
+from src import fcn_resnet50
 from train_utils import train_eval_utils as utils
 from my_dataset import VOCSegmentation
 import transforms as T
@@ -59,16 +59,16 @@ def get_transform(train):
 
 def create_model(aux, num_classes, pretrain=True):
     '''model'''
-    model = deeplabv3_resnet50(aux=aux, num_classes=num_classes)
+    model = fcn_resnet50(aux=aux, num_classes=num_classes)
 
     if pretrain:
-        weights_dict = ms.load_checkpoint("./deeplabv3_resnet50_coco.ckpt")
+        weights_dict = ms.load_checkpoint("./fcn_resnet50.ckpt")
 
         if num_classes != 21:
             # 官方提供的预训练权重是21类(包括背景)
             # 如果训练自己的数据集，将和类别相关的权重删除，防止权重shape不一致报错
             for k in list(weights_dict.keys()):
-                if "classifier.4" in k:
+                if "low_classifier" in k or "high_classifier" in k:
                     del weights_dict[k]
 
         missing_keys, unexpected_keys = ms.load_param_into_net(
@@ -127,11 +127,6 @@ def main(args):
                     if p.requires_grad]}
     ]
 
-    if args.aux:
-        params = [p for p in model.aux_classifier.trainable_params()
-                  if p.requires_grad]
-        params_to_optimize.append({"params": params, "lr": args.lr * 10})
-
     # define optimizer
     lr = Tensor(utils.get_lr(global_step=0 * batch_size,
                              lr_init=args.lr, lr_end=args.lr * 0.05, lr_max=0.05,
@@ -176,12 +171,10 @@ def main(args):
 
 def parse_args():
     '''config'''
-    parser = argparse.ArgumentParser(
-        description="mindspore deeplabv3 training")
+    parser = argparse.ArgumentParser(description="mindspore fcn training")
 
     parser.add_argument("--data-path", default="/data/", help="VOCdevkit root")
     parser.add_argument("--num-classes", default=20, type=int)
-    parser.add_argument("--aux", default=True, type=bool, help="auxilier loss")
     parser.add_argument("-b", "--batch-size", default=4, type=int)
     parser.add_argument("--epochs", default=30, type=int, metavar="N",
                         help="number of total epochs to train")

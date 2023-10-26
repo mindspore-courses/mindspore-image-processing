@@ -1,14 +1,13 @@
-'''train'''
+'''单机多卡，数据并行'''
 # pylint: disable=E0401
 import os
 import argparse
 import time
 import datetime
-
 import mindspore as ms
 from mindspore import dataset, nn, Tensor
-
-from src import deeplabv3_resnet50
+from mindspore.communication import get_rank, get_group_size, init
+from src import fcn_resnet50
 from train_utils import train_eval_utils as utils
 from my_dataset import VOCSegmentation
 import transforms as T
@@ -59,10 +58,10 @@ def get_transform(train):
 
 def create_model(aux, num_classes, pretrain=True):
     '''model'''
-    model = deeplabv3_resnet50(aux=aux, num_classes=num_classes)
+    model = fcn_resnet50(aux=aux, num_classes=num_classes)
 
     if pretrain:
-        weights_dict = ms.load_checkpoint("./deeplabv3_resnet50_coco.ckpt")
+        weights_dict = ms.load_checkpoint("./fcn_resnet50.ckpt")
 
         if num_classes != 21:
             # 官方提供的预训练权重是21类(包括背景)
@@ -82,9 +81,17 @@ def create_model(aux, num_classes, pretrain=True):
 
 def main(args):
     '''main'''
-    ms.set_context(device_target="GPU")
+    ms.set_context(mode=ms.GRAPH_MODE, device_target="GPU")
+    init("nccl")
+    ms.set_auto_parallel_context(
+        parallel_mode=ms.ParallelMode.AUTO_PARALLEL, gradients_mean=True)
 
     batch_size = args.batch_size
+
+    # get rank_id and rank_size
+    rank_id = get_rank()
+    rank_size = get_group_size()
+
     # segmentation nun_classes + background
     num_classes = args.num_classes + 1
 
@@ -108,12 +115,16 @@ def main(args):
 
     train_loader = dataset.GeneratorDataset(train_dataset,
                                             shuffle=True,
+                                            num_shards=rank_size,
+                                            shard_id=rank_id,
                                             num_parallel_workers=num_workers)
     train_loader = train_loader.batch(
         batch_size=batch_size, per_batch_map=train_dataset.collate_fn)
 
     val_loader = dataset.GeneratorDataset(train_dataset,
                                           shuffle=False,
+                                          num_shards=rank_size,
+                                          shard_id=rank_id,
                                           num_parallel_workers=num_workers)
     val_loader = val_loader.batch(
         batch_size=1, per_batch_map=val_dataset.collate_fn)
@@ -176,8 +187,7 @@ def main(args):
 
 def parse_args():
     '''config'''
-    parser = argparse.ArgumentParser(
-        description="mindspore deeplabv3 training")
+    parser = argparse.ArgumentParser(description="mindspore fcn training")
 
     parser.add_argument("--data-path", default="/data/", help="VOCdevkit root")
     parser.add_argument("--num-classes", default=20, type=int)

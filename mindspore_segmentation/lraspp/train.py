@@ -8,7 +8,7 @@ import datetime
 import mindspore as ms
 from mindspore import dataset, nn, Tensor
 
-from src import deeplabv3_resnet50
+from src import lraspp_mobilenetv3_large
 from train_utils import train_eval_utils as utils
 from my_dataset import VOCSegmentation
 import transforms as T
@@ -57,12 +57,12 @@ def get_transform(train):
     return SegmentationPresetTrain(base_size, crop_size) if train else SegmentationPresetEval(base_size)
 
 
-def create_model(aux, num_classes, pretrain=True):
+def create_model(num_classes, pretrain=True):
     '''model'''
-    model = deeplabv3_resnet50(aux=aux, num_classes=num_classes)
+    model = lraspp_mobilenetv3_large(num_classes=num_classes)
 
     if pretrain:
-        weights_dict = ms.load_checkpoint("./deeplabv3_resnet50_coco.ckpt")
+        weights_dict = ms.load_checkpoint("./lraspp_mobilenetv3_large.ckpt")
 
         if num_classes != 21:
             # 官方提供的预训练权重是21类(包括背景)
@@ -118,7 +118,7 @@ def main(args):
     val_loader = val_loader.batch(
         batch_size=1, per_batch_map=val_dataset.collate_fn)
 
-    model = create_model(aux=args.aux, num_classes=num_classes)
+    model = create_model(num_classes=num_classes)
 
     params_to_optimize = [
         {"params": [p for p in model.backbone.trainable_params()
@@ -177,7 +177,7 @@ def main(args):
 def parse_args():
     '''config'''
     parser = argparse.ArgumentParser(
-        description="mindspore deeplabv3 training")
+        description="mindspore lraspp training")
 
     parser.add_argument("--data-path", default="/data/", help="VOCdevkit root")
     parser.add_argument("--num-classes", default=20, type=int)

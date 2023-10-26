@@ -187,7 +187,8 @@ def main(args):
 
 def parse_args():
     '''config'''
-    parser = argparse.ArgumentParser(description="pytorch deeplabv3 training")
+    parser = argparse.ArgumentParser(
+        description="mindspore deeplabv3 training")
 
     parser.add_argument("--data-path", default="/data/", help="VOCdevkit root")
     parser.add_argument("--num-classes", default=20, type=int)

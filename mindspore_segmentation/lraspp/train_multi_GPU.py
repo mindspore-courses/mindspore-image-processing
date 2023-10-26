@@ -1,14 +1,13 @@
-'''train'''
+'''单机多卡，数据并行'''
 # pylint: disable=E0401
 import os
 import argparse
 import time
 import datetime
-
 import mindspore as ms
 from mindspore import dataset, nn, Tensor
-
-from src import deeplabv3_resnet50
+from mindspore.communication import get_rank, get_group_size, init
+from src import lraspp_mobilenetv3_large
 from train_utils import train_eval_utils as utils
 from my_dataset import VOCSegmentation
 import transforms as T
@@ -57,18 +56,18 @@ def get_transform(train):
     return SegmentationPresetTrain(base_size, crop_size) if train else SegmentationPresetEval(base_size)
 
 
-def create_model(aux, num_classes, pretrain=True):
+def create_model(num_classes, pretrain=True):
     '''model'''
-    model = deeplabv3_resnet50(aux=aux, num_classes=num_classes)
+    model = lraspp_mobilenetv3_large(num_classes=num_classes)
 
     if pretrain:
-        weights_dict = ms.load_checkpoint("./deeplabv3_resnet50_coco.ckpt")
+        weights_dict = ms.load_checkpoint("./lraspp_mobilenetv3_large.ckpt")
 
         if num_classes != 21:
             # 官方提供的预训练权重是21类(包括背景)
             # 如果训练自己的数据集，将和类别相关的权重删除，防止权重shape不一致报错
             for k in list(weights_dict.keys()):
-                if "classifier.4" in k:
+                if "low_classifier" in k or "high_classifier" in k:
                     del weights_dict[k]
 
         missing_keys, unexpected_keys = ms.load_param_into_net(
@@ -82,9 +81,17 @@ def create_model(aux, num_classes, pretrain=True):
 
 def main(args):
     '''main'''
-    ms.set_context(device_target="GPU")
+    ms.set_context(mode=ms.GRAPH_MODE, device_target="GPU")
+    init("nccl")
+    ms.set_auto_parallel_context(
+        parallel_mode=ms.ParallelMode.AUTO_PARALLEL, gradients_mean=True)
 
     batch_size = args.batch_size
+
+    # get rank_id and rank_size
+    rank_id = get_rank()
+    rank_size = get_group_size()
+
     # segmentation nun_classes + background
     num_classes = args.num_classes + 1
 
@@ -108,17 +115,21 @@ def main(args):
 
     train_loader = dataset.GeneratorDataset(train_dataset,
                                             shuffle=True,
+                                            num_shards=rank_size,
+                                            shard_id=rank_id,
                                             num_parallel_workers=num_workers)
     train_loader = train_loader.batch(
         batch_size=batch_size, per_batch_map=train_dataset.collate_fn)
 
     val_loader = dataset.GeneratorDataset(train_dataset,
                                           shuffle=False,
+                                          num_shards=rank_size,
+                                          shard_id=rank_id,
                                           num_parallel_workers=num_workers)
     val_loader = val_loader.batch(
         batch_size=1, per_batch_map=val_dataset.collate_fn)
 
-    model = create_model(aux=args.aux, num_classes=num_classes)
+    model = create_model(num_classes=num_classes)
 
     params_to_optimize = [
         {"params": [p for p in model.backbone.trainable_params()
@@ -126,11 +137,6 @@ def main(args):
         {"params": [p for p in model.classifier.trainable_params()
                     if p.requires_grad]}
     ]
-
-    if args.aux:
-        params = [p for p in model.aux_classifier.trainable_params()
-                  if p.requires_grad]
-        params_to_optimize.append({"params": params, "lr": args.lr * 10})
 
     # define optimizer
     lr = Tensor(utils.get_lr(global_step=0 * batch_size,
@@ -176,12 +182,10 @@ def main(args):
 
 def parse_args():
     '''config'''
-    parser = argparse.ArgumentParser(
-        description="mindspore deeplabv3 training")
+    parser = argparse.ArgumentParser(description="mindspore lraspp training")
 
     parser.add_argument("--data-path", default="/data/", help="VOCdevkit root")
     parser.add_argument("--num-classes", default=20, type=int)
-    parser.add_argument("--aux", default=True, type=bool, help="auxilier loss")
     parser.add_argument("-b", "--batch-size", default=4, type=int)
     parser.add_argument("--epochs", default=30, type=int, metavar="N",
                         help="number of total epochs to train")
