@@ -53,6 +53,7 @@ class IntermediateLayerGetter(nn.CellDict):
         self.return_layers = orig_return_layers
 
     def construct(self, x: Tensor) -> Dict[str, Tensor]:
+        '''construct'''
         out = OrderedDict()
         for name, module in self.items():
             x = module(x)

@@ -7,7 +7,7 @@ class VOCSegmentation():
     '''VOCSegmentation'''
 
     def __init__(self, voc_root, year="2012", transforms=None, txt_name: str = "train.txt"):
-        super(VOCSegmentation, self).__init__()
+        super().__init__()
         assert year in ["2007", "2012"], "year must be in ['2007', '2012']"
         root = os.path.join(voc_root, "VOCdevkit", f"VOC{year}")
         assert os.path.exists(root), "path '{}' does not exist.".format(root)
@@ -23,7 +23,7 @@ class VOCSegmentation():
 
         self.images = [os.path.join(image_dir, x + ".jpg") for x in file_names]
         self.masks = [os.path.join(mask_dir, x + ".png") for x in file_names]
-        assert (len(self.images) == len(self.masks))
+        assert len(self.images) == len(self.masks)
         self.transforms = transforms
 
     def __getitem__(self, index):

@@ -1,4 +1,5 @@
 '''train'''
+# pylint: disable=E0401
 import os
 import argparse
 import time

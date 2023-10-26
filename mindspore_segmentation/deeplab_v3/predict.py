@@ -1,4 +1,5 @@
 '''预测'''
+# pylint: disable=E0401
 import os
 import json
 import numpy as np

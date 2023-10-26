@@ -104,7 +104,7 @@ class InvertedResidual(nn.Cell):
     def __init__(self,
                  cnf: InvertedResidualConfig,
                  norm_layer: Callable[..., nn.Cell]):
-        super(InvertedResidual, self).__init__()
+        super().__init__()
 
         if cnf.stride not in [1, 2]:
             raise ValueError("illegal stride value.")
@@ -169,8 +169,8 @@ class MobileNetV3(nn.Cell):
         if not inverted_residual_setting:
             raise ValueError(
                 "The inverted_residual_setting should not be empty.")
-        elif not (isinstance(inverted_residual_setting, List) and
-                  all([isinstance(s, InvertedResidualConfig) for s in inverted_residual_setting])):
+        if not (isinstance(inverted_residual_setting, List) and
+                all(isinstance(s, InvertedResidualConfig) for s in inverted_residual_setting)):
             raise TypeError(
                 "The inverted_residual_setting should be List[InvertedResidualConfig]")
 

@@ -1,4 +1,5 @@
 '''单机多卡，数据并行'''
+# pylint: disable=E0401
 import os
 import argparse
 import time
