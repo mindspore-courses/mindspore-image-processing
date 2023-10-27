@@ -135,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--batch-size', type=int, default=8)
     parser.add_argument('--lr', type=float, default=5e-4)
+    parser.add_argument('--lrf', type=float, default=0.01)
     parser.add_argument('--wd', type=float, default=5e-2)
 
     # 数据集所在根目录

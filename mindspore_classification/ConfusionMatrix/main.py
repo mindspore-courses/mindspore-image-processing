@@ -132,7 +132,7 @@ if __name__ == '__main__':
         outputs = net(val_images)
         outputs = mindspore.ops.softmax(outputs, axis=1)
         outputs = mindspore.ops.argmax(outputs, dim=1)
-        confusion.update(outputs.numpy(),
-                         val_labels.numpy())
+        confusion.update(outputs.asnumpy(),
+                         val_labels.asnumpy())
     confusion.plot()
     confusion.summary()

@@ -62,7 +62,7 @@ def main(args):
     if args.weights != "":
         assert os.path.exists(
             args.weights), f"weights file: '{args.weights}' not exist."
-        weights_dict = mindspore.load_checkpoint(args.weights)["model"]
+        weights_dict = mindspore.load_checkpoint(args.weights)
         # 删除有关分类类别的权重
         for k in list(weights_dict.keys()):
             if "head" in k:
@@ -78,7 +78,9 @@ def main(args):
                 print(f"training {name}")
 
     pg = [p for p in model.get_parameters() if p.requires_grad]
-    optimizer = mindspore.nn.AdamW(pg, lr=args.lr, weight_decay=1E-2)
+    optimizer = mindspore.nn.AdamWeightDecay(
+        pg, learning_rate=args.lr, weight_decay=1E-2)
+
 
     best_acc = 0.
     with SummaryRecord(log_dir="./summary_dir", network=model) as summary_record:
@@ -107,7 +109,7 @@ def main(args):
                 mindspore.save_checkpoint(model, "./weights/best_model.ckpt")
                 best_acc = val_acc
 
-            mindspore.save_checkpoint(model, "./weights/latest_model.pth")
+            mindspore.save_checkpoint(model, "./weights/latest_model.ckpt")
 
 
 if __name__ == '__main__':
