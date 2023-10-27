@@ -4,9 +4,9 @@ import math
 
 import numpy as np
 from mindspore import value_and_grad, ops, Tensor
-
-from .dice_coefficient_loss import dice_loss, build_target
 import train_utils.eval_utils as utils
+from .dice_coefficient_loss import dice_loss, build_target
+
 
 
 def get_lr(global_step, lr_init, lr_end, lr_max, warmup_epochs, total_epochs, steps_per_epoch):

@@ -75,7 +75,7 @@ class VGG16UNet(nn.Cell):
         stage_indices = [5, 12, 22, 32, 42]
         self.stage_out_channels = [64, 128, 256, 512, 512]
         return_layers = dict(
-            [(str(j), f"stage{i}") for i, j in enumerate(stage_indices)])
+            (str(j), f"stage{i}") for i, j in enumerate(stage_indices))
         self.backbone = IntermediateLayerGetter(
             backbone, return_layers=return_layers)
 

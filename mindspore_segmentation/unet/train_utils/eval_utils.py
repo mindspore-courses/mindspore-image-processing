@@ -83,9 +83,10 @@ class DiceCoefficient():
     def value(self):
         '''value'''
         if self.count == 0:
-            return 0
+            out = 0
         else:
-            return self.cumulative_dice / self.count
+            out = self.cumulative_dice / self.count
+        return out
 
     def reset(self):
         '''teset'''

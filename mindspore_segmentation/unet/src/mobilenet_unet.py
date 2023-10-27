@@ -74,7 +74,7 @@ class MobileV3Unet(nn.Cell):
         self.stage_out_channels = [
             backbone[i].out_channels for i in stage_indices]
         return_layers = dict(
-            [(str(j), f"stage{i}") for i, j in enumerate(stage_indices)])
+            (str(j), f"stage{i}") for i, j in enumerate(stage_indices))
         self.backbone = IntermediateLayerGetter(
             backbone, return_layers=return_layers)
 

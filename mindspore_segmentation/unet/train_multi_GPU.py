@@ -58,9 +58,11 @@ def get_transform(train, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
     crop_size = 480
 
     if train:
-        return SegmentationPresetTrain(base_size, crop_size, mean=mean, std=std)
+        out = SegmentationPresetTrain(base_size, crop_size, mean=mean, std=std)
     else:
-        return SegmentationPresetEval(mean=mean, std=std)
+        out = SegmentationPresetEval(mean=mean, std=std)
+
+    return out
 
 
 def create_model(num_classes):
